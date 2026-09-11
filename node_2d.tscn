@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://baj8ackhwq3ty"]
+
+[sub_resource type="GDScript" id="GDScript_y32ns"]
+script/source = "extends CharacterBody2D
+
+@export var speed = 400
+
+func get_input():
+	var input_direction = Input.get_vector(\"left\", \"right\", \"up\", \"down\")
+	velocity = input_direction * speed
+
+func _physics_process(delta):
+	get_input()
+	move_and_slide()
+	
+"
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_wtcfe"]
+load_path = "res://.godot/imported/randim kid.png-616d662596a2f7c8efc41daf0ac5c8ef.ctex"
+
+[node name="Node2D" type="Node2D" unique_id=1886226480]
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=739409553]
+script = SubResource("GDScript_y32ns")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1608328910]
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" unique_id=1032688734]
+texture_filter = 1
+texture = SubResource("CompressedTexture2D_wtcfe")
+
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D" unique_id=632787460]
+position_smoothing_enabled = true
