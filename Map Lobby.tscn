@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://wehf4r11205l" path="res://Tiny Swords (Free Pack)/Terrain/Decorations/Rubber Duck/Rubber duck.png" id="18_25773"]
 [ext_resource type="Script" uid="uid://b780qc3pyfwlp" path="res://path_debug.gd" id="19_w42ls"]
 [ext_resource type="Texture2D" uid="uid://bhfw45fmfsk71" path="res://Tiny Swords (Free Pack)/Units/Units (aseprite in Blue only)/Pawn1.svg" id="20_cb2k0"]
+[ext_resource type="AudioStream" uid="uid://bh7wikglg1b6j" path="res://audio/calm_bgm.wav" id="21_bgm"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlt5j"]
 size = Vector2(62, 62)
@@ -524,6 +525,11 @@ sources/6 = SubResource("TileSetAtlasSource_5ucmy")
 
 [node name="World" type="Node" unique_id=64486053]
 
+[node name="BGMPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("21_bgm")
+volume_db = -14.0
+autoplay = true
+
 [node name="Node2D" type="Node2D" parent="." unique_id=746800918]
 script = ExtResource("1_co410")
 
@@ -544,6 +550,9 @@ script = ExtResource("12_s20o0")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/Player" unique_id=500671969]
 position = Vector2(-2, 1)
 shape = SubResource("RectangleShape2D_rlt5j")
+
+[node name="FootstepAudio" type="AudioStreamPlayer2D" parent="Node2D/Player" unique_id=892347102]
+volume_db = -14.0
 
 [node name="Water_Background" type="TileMapLayer" parent="Node2D" unique_id=1323021561]
 z_index = -1

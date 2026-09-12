@@ -7,6 +7,29 @@ var current_path: Array[Vector2] = []
 var debug_path: Array[Vector2] = []
 
 @onready var sprite: Sprite2D = $PlayerSprite
+@onready var footstep_player: AudioStreamPlayer2D = $FootstepAudio if has_node("FootstepAudio") else null
+
+var footstep_sounds: Array[AudioStream] = [
+	preload("res://audio/grass_step_1.wav"),
+	preload("res://audio/grass_step_2.wav"),
+	preload("res://audio/grass_step_3.wav"),
+	preload("res://audio/grass_step_4.wav")
+]
+var last_footstep_index: int = -1
+var step_distance_threshold: float = 140.0
+var distance_accumulated: float = 0.0
+var step_cooldown: float = 0.0
+
+func _ready() -> void:
+	if footstep_player == null:
+		if has_node("FootstepAudio"):
+			footstep_player = $FootstepAudio
+		else:
+			footstep_player = AudioStreamPlayer2D.new()
+			footstep_player.name = "FootstepAudio"
+			add_child(footstep_player)
+	footstep_player.volume_db = -14.0
+	footstep_player.max_polyphony = 2
 
 #func _ready() -> void:
 	#if obstacle_map_layer:
@@ -94,14 +117,27 @@ func move_to(pos: Vector2) -> void:
 		current_path.append(pixel_pos)
 
 func _physics_process(delta: float) -> void:
+	if step_cooldown > 0.0:
+		step_cooldown -= delta
+
 	if current_path.is_empty():
+		distance_accumulated = step_distance_threshold * 0.6
 		return
 		
 	# Target world position
 	var target_pos = current_path[0]
+	var prev_pos = global_position
 	
 	# Move toward target position
 	global_position = global_position.move_toward(target_pos, delta * 500)
+	
+	# Trigger grass footsteps based on distance moved and cooldown
+	var moved_dist = prev_pos.distance_to(global_position)
+	distance_accumulated += moved_dist
+	if distance_accumulated >= step_distance_threshold and step_cooldown <= 0.0:
+		play_footstep()
+		distance_accumulated = 0.0
+		step_cooldown = 0.24
 	
 	if target_pos.x < global_position.x:
 		sprite.flip_h = true
@@ -112,3 +148,16 @@ func _physics_process(delta: float) -> void:
 	if global_position.distance_to(target_pos) < 1.0:
 		global_position = target_pos
 		current_path.pop_front()
+
+func play_footstep() -> void:
+	if footstep_sounds.is_empty() or footstep_player == null:
+		return
+	var idx = randi() % footstep_sounds.size()
+	if idx == last_footstep_index and footstep_sounds.size() > 1:
+		idx = (idx + 1) % footstep_sounds.size()
+	last_footstep_index = idx
+	
+	footstep_player.stream = footstep_sounds[idx]
+	footstep_player.pitch_scale = randf_range(0.95, 1.05)
+	footstep_player.volume_db = -14.0 + randf_range(-1.0, 1.0)
+	footstep_player.play()
