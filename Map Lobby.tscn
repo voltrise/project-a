@@ -19,11 +19,13 @@
 [ext_resource type="Texture2D" uid="uid://wehf4r11205l" path="res://Tiny Swords (Free Pack)/Terrain/Decorations/Rubber Duck/Rubber duck.png" id="18_25773"]
 [ext_resource type="Script" uid="uid://b780qc3pyfwlp" path="res://path_debug.gd" id="19_w42ls"]
 [ext_resource type="Texture2D" uid="uid://chju2u50celj1" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle.png" id="20_cb2k0"]
-[ext_resource type="AudioStream" uid="uid://bh7wikglg1b6j" path="res://audio/calm_bgm.wav" id="21_bgm"]
-[ext_resource type="AnimationLibrary" path="res://pawn_animations.tres" id="22_anim"]
+[ext_resource type="AudioStream" uid="uid://bh7wikglg1b6j" path="res://audio/bgm/calm_bgm.wav" id="21_bgm"]
+[ext_resource type="AnimationLibrary" uid="uid://dbqvutmmk3w8p" path="res://pawn_animations.tres" id="22_anim"]
 [ext_resource type="Texture2D" uid="uid://kes7405hlhdl" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Idle.png" id="23_archer_tex"]
-[ext_resource type="AnimationLibrary" path="res://archer_animations.tres" id="24_archer_anim"]
+[ext_resource type="AnimationLibrary" uid="uid://d4k4wggv0jq5w" path="res://archer_animations.tres" id="24_archer_anim"]
 [ext_resource type="Script" uid="uid://cjucn2kvdpy5n" path="res://party_ui.gd" id="25_party_ui"]
+[ext_resource type="PackedScene" uid="uid://bxg36h62a07l0" path="res://dice_system.tscn" id="26_dice_sys"]
+[ext_resource type="Script" path="res://npc_spawner.gd" id="27_spawner"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlt5j"]
 size = Vector2(32, 24)
@@ -519,3 +521,8 @@ tile_set = SubResource("TileSet_jdvnf")
 
 [node name="PathDebug" type="Node2D" parent="Node2D" unique_id=1347017189]
 script = ExtResource("19_w42ls")
+
+[node name="DiceSystem" parent="Node2D" unique_id=930671710 instance=ExtResource("26_dice_sys")]
+
+[node name="NPCs" type="Node2D" parent="Node2D" unique_id=987654321]
+script = ExtResource("27_spawner")

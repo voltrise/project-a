@@ -1,0 +1,170 @@
+[
+  {
+	"id": "rimuru",
+	"name": "Rimuru",
+	"image": "res://characters/rimuru.png",
+	"tier": "Common",
+	"chance": 2
+  },
+  {
+	"id": "shuna",
+	"name": "Shuna",
+	"image": "res://characters/shuna.png",
+	"tier": "Common",
+	"chance": 4
+  },
+  {
+	"id": "alicia",
+	"name": "Alicia",
+	"image": "res://characters/Alicia.png",
+	"tier": "Common",
+	"chance": 6
+  },
+  {
+	"id": "nijika",
+	"name": "Nijika",
+	"image": "res://characters/nijika.png",
+	"tier": "Uncommon",
+	"chance": 8
+  },
+  {
+	"id": "ryo",
+	"name": "Ryo",
+	"image": "res://characters/Ryo.png",
+	"tier": "Uncommon",
+	"chance": 12
+  },
+  {
+	"id": "kita",
+	"name": "Kita",
+	"image": "res://characters/Kita.png",
+	"tier": "Uncommon",
+	"chance": 16
+  },
+  {
+	"id": "bocchi",
+	"name": "Bocchi",
+	"image": "res://characters/bocchi.png",
+	"tier": "Rare",
+	"chance": 24
+  },
+  {
+	"id": "kokkoro",
+	"name": "Kokkoro",
+	"image": "res://characters/Kokkoro.png",
+	"tier": "Rare",
+	"chance": 32
+  },
+  {
+	"id": "karyl",
+	"name": "Karyl",
+	"image": "res://characters/Karyl.png",
+	"tier": "Rare",
+	"chance": 40
+  },
+  {
+	"id": "pecorine",
+	"name": "Pecorine",
+	"image": "res://characters/Pecorine.png",
+	"tier": "Rare",
+	"chance": 48
+  },
+  {
+	"id": "rebecca",
+	"name": "Rebecca",
+	"image": "res://characters/Rebecca.png",
+	"tier": "Epic",
+	"chance": 64
+  },
+  {
+	"id": "lucy",
+	"name": "Lucy",
+	"image": "res://characters/Lucy.png",
+	"tier": "Epic",
+	"chance": 80
+  },
+  {
+	"id": "special_week",
+	"name": "Special Week",
+	"image": "res://characters/Special Week.png",
+	"tier": "Epic",
+	"chance": 96
+  },
+  {
+	"id": "goldship",
+	"name": "Gold Ship",
+	"image": "res://characters/Goldship.png",
+	"tier": "Epic",
+	"chance": 128
+  },
+  {
+	"id": "fern",
+	"name": "Fern",
+	"image": "res://characters/Fern.png",
+	"tier": "Legendary",
+	"chance": 180
+  },
+  {
+	"id": "clen",
+	"name": "Clen",
+	"image": "res://characters/Clen.png",
+	"tier": "Legendary",
+	"chance": 240
+  },
+  {
+	"id": "eleanor",
+	"name": "Eleanor",
+	"image": "res://characters/Eleanor.png",
+	"tier": "Legendary",
+	"chance": 320
+  },
+  {
+	"id": "jane_doe",
+	"name": "Jane Doe",
+	"image": "res://characters/Jane Doe.png",
+	"tier": "Legendary",
+	"chance": 380
+  },
+  {
+	"id": "lumine",
+	"name": "Lumine",
+	"image": "res://characters/Lumine.png",
+	"tier": "Legendary",
+	"chance": 450
+  },
+  {
+	"id": "frieren",
+	"name": "Frieren",
+	"image": "res://characters/Frieren.png",
+	"tier": "Mythic",
+	"chance": 600
+  },
+  {
+	"id": "furina",
+	"name": "Furina",
+	"image": "res://characters/Furina.png",
+	"tier": "Mythic",
+	"chance": 750
+  },
+  {
+	"id": "milim_nava",
+	"name": "Milim Nava",
+	"image": "res://characters/Milim Nava.png",
+	"tier": "Mythic",
+	"chance": 850
+  },
+  {
+	"id": "clevatess",
+	"name": "Clevatess",
+	"image": "res://characters/Clevatess.png",
+	"tier": "Mythic",
+	"chance": 1200
+  },
+  {
+	"id": "trickster_lucy",
+	"name": "Trickster Lucy",
+	"image": "res://characters/Trickster Lucy.png",
+	"tier": "Secret",
+	"chance": 2000
+  }
+]

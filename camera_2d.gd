@@ -13,6 +13,15 @@ var active_tween: Tween = null
 @export var max_zoom: float = 2.0   # Maximum zoomed in
 
 func _ready() -> void:
+	var vp = get_viewport()
+	if vp:
+		vp.audio_listener_enable_2d = true
+	if not has_node("AudioListener2D"):
+		var listener := AudioListener2D.new()
+		listener.name = "AudioListener2D"
+		add_child(listener)
+		listener.make_current()
+
 	if target == null and get_parent() != null:
 		target = get_parent().get_node_or_null("Player")
 	if target != null and is_instance_valid(target):

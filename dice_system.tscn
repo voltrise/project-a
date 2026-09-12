@@ -1,0 +1,209 @@
+[gd_scene format=3 uid="uid://bxg36h62a07l0"]
+
+[ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_0e48y"]
+[ext_resource type="Texture2D" uid="uid://bkebhb7bg3lq0" path="res://ui/Dicepixel.png" id="2_0j2wi"]
+[ext_resource type="Script" uid="uid://boi5rg7tmpmt" path="res://dice_button.gd" id="3_70k6x"]
+[ext_resource type="AudioStream" uid="uid://brpv3i4audncu" path="res://audio/sfx/hover_pop.wav" id="4_hov1e"]
+[ext_resource type="AudioStream" uid="uid://bwjre4ru4naqq" path="res://audio/sfx/dice_click.wav" id="5_clk2e"]
+[ext_resource type="Script" uid="uid://dtbedudm745no" path="res://rng_roller.gd" id="6_roller"]
+
+[sub_resource type="Gradient" id="Gradient_win"]
+offsets = PackedFloat32Array(0, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 0.9, 0.4, 0.95, 1, 0.5, 0.8, 0)
+
+[sub_resource type="Gradient" id="Gradient_sparkle"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(1, 0.95, 0.45, 1, 1, 0.7, 0.25, 0.95, 0.78, 0.5, 1, 0)
+
+[node name="DiceSystem" type="CanvasLayer" unique_id=713916970]
+layer = 95
+
+[node name="DimOverlay" type="ColorRect" parent="." unique_id=593960804]
+visible = false
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="RngRoller" type="Control" parent="." unique_id=1890378053]
+visible = false
+modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -220.0
+offset_right = 250.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(250, 220)
+script = ExtResource("6_roller")
+
+[node name="Shaker" type="Control" parent="RngRoller" unique_id=715170273]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ReelViewport" type="Control" parent="RngRoller/Shaker" unique_id=1730607425]
+custom_minimum_size = Vector2(300, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -220.0
+offset_right = 150.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Track" type="Control" parent="RngRoller/Shaker/ReelViewport" unique_id=2086528334]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Needles" type="Control" parent="RngRoller/Shaker" unique_id=663975394]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NeedleLeft" type="TextureRect" parent="RngRoller/Shaker/Needles" unique_id=588984781]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 208.0
+offset_right = 120.0
+offset_bottom = 232.0
+pivot_offset = Vector2(64, 12)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NeedleRight" type="TextureRect" parent="RngRoller/Shaker/Needles" unique_id=1841482851]
+layout_mode = 0
+offset_left = 380.0
+offset_top = 208.0
+offset_right = 444.0
+offset_bottom = 232.0
+pivot_offset = Vector2(0, 12)
+expand_mode = 1
+stretch_mode = 5
+flip_h = true
+
+[node name="WinnerParticles" type="CPUParticles2D" parent="RngRoller/Shaker" unique_id=1569519509]
+show_behind_parent = true
+position = Vector2(250, 220)
+emitting = false
+amount = 28
+lifetime = 0.75
+one_shot = true
+explosiveness = 0.95
+lifetime_randomness = 0.35
+spread = 180.0
+gravity = Vector2(0, 360)
+initial_velocity_min = 180.0
+initial_velocity_max = 320.0
+angular_velocity_min = -180.0
+angular_velocity_max = 180.0
+scale_amount_min = 5.0
+scale_amount_max = 11.0
+color_ramp = SubResource("Gradient_win")
+
+[node name="TickSound" type="AudioStreamPlayer" parent="RngRoller" unique_id=1475465671]
+volume_db = -4.0
+
+[node name="WinSound" type="AudioStreamPlayer" parent="RngRoller" unique_id=271973875]
+
+[node name="LegendarySound" type="AudioStreamPlayer" parent="RngRoller" unique_id=83996200]
+volume_db = 2.0
+
+[node name="TextureButton" type="TextureButton" parent="." unique_id=1086524284]
+texture_filter = 1
+custom_minimum_size = Vector2(80, 80)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -96.0
+offset_right = 40.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(40, 40)
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("2_0j2wi")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("3_70k6x")
+
+[node name="Particles" type="CPUParticles2D" parent="TextureButton" unique_id=391502843]
+show_behind_parent = true
+position = Vector2(40, 40)
+emitting = false
+amount = 14
+lifetime = 0.55
+one_shot = true
+explosiveness = 0.95
+lifetime_randomness = 0.25
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, 320)
+initial_velocity_min = 100.0
+initial_velocity_max = 180.0
+angular_velocity_min = -180.0
+angular_velocity_max = 180.0
+scale_amount_min = 2.5
+scale_amount_max = 5.0
+color_ramp = SubResource("Gradient_sparkle")
+
+[node name="Label" type="Label" parent="TextureButton" unique_id=2026362518]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -24.0
+offset_right = 32.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(32, 11)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("2_0e48y")
+theme_override_font_sizes/font_size = 22
+text = "ROLL"
+horizontal_alignment = 1
+
+[node name="HoverSound" type="AudioStreamPlayer" parent="TextureButton" unique_id=1010635866]
+stream = ExtResource("4_hov1e")
+volume_db = -6.0
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="TextureButton" unique_id=1463874219]
+stream = ExtResource("5_clk2e")
+volume_db = -1.0
+
+[connection signal="pressed" from="TextureButton" to="RngRoller" method="start_roll"]
+[connection signal="right_pressed" from="TextureButton" to="RngRoller" method="start_demo_roll"]

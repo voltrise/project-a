@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://npc_character_scene_01"]
+
+[ext_resource type="Script" path="res://npc_character.gd" id="1_npc"]
+[ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_font"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hover"]
+size = Vector2(68, 92)
+
+[node name="NpcCharacter" type="Node2D"]
+z_index = 2
+texture_filter = 1
+script = ExtResource("1_npc")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, 16)
+scale = Vector2(1.7, 1.7)
+
+[node name="HoverArea" type="Area2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HoverArea"]
+position = Vector2(0, -28)
+shape = SubResource("RectangleShape2D_hover")
+
+[node name="FootstepAudio" type="AudioStreamPlayer2D" parent="."]
+volume_db = -16.0
+max_distance = 600.0
+attenuation = 1.5
+max_polyphony = 2
+
+[node name="DetailCard" type="PanelContainer" parent="."]
+visible = false
+modulate = Color(1, 1, 1, 0)
+z_index = 100
+z_as_relative = false
+custom_minimum_size = Vector2(150, 56)
+offset_left = -75.0
+offset_top = -130.0
+offset_right = 75.0
+offset_bottom = -74.0
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="DetailCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 5
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="DetailCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="NameLabel" type="Label" parent="DetailCard/Margin/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Character"
+horizontal_alignment = 1
+
+[node name="RarityChanceHBox" type="HBoxContainer" parent="DetailCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+mouse_filter = 2
+
+[node name="RarityLabel" type="Label" parent="DetailCard/Margin/VBox/RarityChanceHBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Rarity"
+horizontal_alignment = 1
+
+[node name="ChanceLabel" type="Label" parent="DetailCard/Margin/VBox/RarityChanceHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "1/32"
+horizontal_alignment = 1
+
+[node name="ActionHintLabel" type="Label" parent="DetailCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.74, 0.82, 0.9)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 10
+text = "(Right click to follow)"
+horizontal_alignment = 1

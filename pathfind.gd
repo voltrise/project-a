@@ -19,10 +19,10 @@ var is_interacting: bool = false
 var stuck_counter: int = 0
 
 var footstep_sounds: Array[AudioStream] = [
-	preload("res://audio/grass_step_1.wav"),
-	preload("res://audio/grass_step_2.wav"),
-	preload("res://audio/grass_step_3.wav"),
-	preload("res://audio/grass_step_4.wav")
+	preload("res://audio/sfx/grass_step_1.wav"),
+	preload("res://audio/sfx/grass_step_2.wav"),
+	preload("res://audio/sfx/grass_step_3.wav"),
+	preload("res://audio/sfx/grass_step_4.wav")
 ]
 var last_footstep_index: int = -1
 var step_distance_threshold: float = 140.0

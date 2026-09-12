@@ -1,0 +1,51 @@
+{
+  "Common": {
+    "name": "Common",
+    "color": "#CBD5E1",
+    "glow_color": "#F1F5F9",
+    "aura_scale": 1.0,
+    "sound": "common"
+  },
+  "Uncommon": {
+    "name": "Uncommon",
+    "color": "#4ADE80",
+    "glow_color": "#86EFAC",
+    "aura_scale": 1.15,
+    "sound": "common"
+  },
+  "Rare": {
+    "name": "Rare",
+    "color": "#38BDF8",
+    "glow_color": "#7DD3FC",
+    "aura_scale": 1.3,
+    "sound": "rare"
+  },
+  "Epic": {
+    "name": "Epic",
+    "color": "#C084FC",
+    "glow_color": "#E9D5FF",
+    "aura_scale": 1.5,
+    "sound": "rare"
+  },
+  "Legendary": {
+    "name": "Legendary",
+    "color": "#FBBF24",
+    "glow_color": "#FEF08A",
+    "aura_scale": 1.75,
+    "sound": "legendary"
+  },
+  "Mythic": {
+    "name": "Mythic",
+    "color": "#F43F5E",
+    "glow_color": "#FDA4AF",
+    "aura_scale": 2.0,
+    "sound": "legendary"
+  },
+  "Secret": {
+    "name": "Secret",
+    "color": "#EC4899",
+    "glow_color": "#F472B6",
+    "aura_scale": 2.25,
+    "sound": "legendary"
+  }
+}
