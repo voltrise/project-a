@@ -31,6 +31,19 @@ func _ready() -> void:
 	footstep_player.volume_db = -14.0
 	footstep_player.max_polyphony = 2
 
+	# Ensure BGMPlayer loops seamlessly
+	var bgm = get_tree().root.find_child("BGMPlayer", true, false) as AudioStreamPlayer
+	if bgm:
+		if bgm.stream is AudioStreamWAV:
+			var wav_stream = bgm.stream as AudioStreamWAV
+			wav_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			if wav_stream.loop_end <= 0:
+				wav_stream.loop_end = wav_stream.data.size() / 4
+		if not bgm.finished.is_connected(bgm.play):
+			bgm.finished.connect(bgm.play)
+		if not bgm.playing:
+			bgm.play()
+
 #func _ready() -> void:
 	#if obstacle_map_layer:
 		# Convert global position to map coords
