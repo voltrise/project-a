@@ -34,7 +34,6 @@ func move_to(pos: Vector2) -> void:
 
 	# Jangan klik obstacle
 	if obstacle_map_layer.get_cell_source_id(target_tile) != -1:
-		print("fired!")
 		return
 
 	# =========================================
@@ -49,6 +48,9 @@ func move_to(pos: Vector2) -> void:
 			target_tile
 		)
 	)
+	
+	if debug_result["path"] == []:
+		return
 
 	var astar_path: Array[Vector2i] = (
 		debug_result["path"]
