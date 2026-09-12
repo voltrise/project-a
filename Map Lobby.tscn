@@ -21,9 +21,12 @@
 [ext_resource type="Texture2D" uid="uid://chju2u50celj1" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle.png" id="20_cb2k0"]
 [ext_resource type="AudioStream" uid="uid://bh7wikglg1b6j" path="res://audio/calm_bgm.wav" id="21_bgm"]
 [ext_resource type="AnimationLibrary" path="res://pawn_animations.tres" id="22_anim"]
+[ext_resource type="Texture2D" uid="uid://kes7405hlhdl" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Idle.png" id="23_archer_tex"]
+[ext_resource type="AnimationLibrary" path="res://archer_animations.tres" id="24_archer_anim"]
+[ext_resource type="Script" uid="uid://cjucn2kvdpy5n" path="res://party_ui.gd" id="25_party_ui"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlt5j"]
-size = Vector2(62, 62)
+size = Vector2(32, 24)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_igvfp"]
 texture = ExtResource("1_sliec")
@@ -32,6 +35,7 @@ texture_region_size = Vector2i(64, 64)
 
 [sub_resource type="TileSet" id="TileSet_iwy37"]
 tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_igvfp")
 sources/1 = SubResource("TileSetAtlasSource_igvfp")
 
 [sub_resource type="TileMapPattern" id="TileMapPattern_co410"]
@@ -56,34 +60,6 @@ texture_region_size = Vector2i(64, 64)
 0:0/0 = 0
 0:0/0/texture_origin = Vector2i(0, -8)
 0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-32, -32, 32, -32, 32, 32, -32, 32)
-2:0/0 = 0
-3:0/0 = 0
-4:0/0 = 0
-5:0/0 = 0
-6:0/0 = 0
-7:0/0 = 0
-8:0/0 = 0
-9:0/0 = 0
-10:0/0 = 0
-11:0/0 = 0
-12:0/0 = 0
-13:0/0 = 0
-14:0/0 = 0
-15:0/0 = 0
-2:1/0 = 0
-3:1/0 = 0
-4:1/0 = 0
-5:1/0 = 0
-6:1/0 = 0
-7:1/0 = 0
-8:1/0 = 0
-9:1/0 = 0
-10:1/0 = 0
-11:1/0 = 0
-12:1/0 = 0
-13:1/0 = 0
-14:1/0 = 0
-15:1/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_d4la6"]
 texture = ExtResource("8_iwy37")
@@ -320,52 +296,6 @@ texture_region_size = Vector2i(64, 64)
 texture = ExtResource("11_xlx32")
 margins = Vector2i(33, 37)
 texture_region_size = Vector2i(64, 64)
-4:0/0 = 0
-7:0/0 = 0
-10:0/0 = 0
-13:0/0 = 0
-16:0/0 = 0
-19:0/0 = 0
-22:0/0 = 0
-3:1/0 = 0
-4:1/0 = 0
-5:1/0 = 0
-6:1/0 = 0
-7:1/0 = 0
-8:1/0 = 0
-9:1/0 = 0
-10:1/0 = 0
-11:1/0 = 0
-12:1/0 = 0
-13:1/0 = 0
-14:1/0 = 0
-15:1/0 = 0
-16:1/0 = 0
-17:1/0 = 0
-18:1/0 = 0
-19:1/0 = 0
-20:1/0 = 0
-21:1/0 = 0
-22:1/0 = 0
-23:1/0 = 0
-3:2/0 = 0
-4:2/0 = 0
-5:2/0 = 0
-6:2/0 = 0
-7:2/0 = 0
-8:2/0 = 0
-10:2/0 = 0
-11:2/0 = 0
-12:2/0 = 0
-13:2/0 = 0
-14:2/0 = 0
-15:2/0 = 0
-16:2/0 = 0
-17:2/0 = 0
-18:2/0 = 0
-19:2/0 = 0
-21:2/0 = 0
-22:2/0 = 0
 0:0/0 = 0
 0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-32, -32, 32, -32, 32, 32, -32, 32)
 1:0/0 = 0
@@ -378,6 +308,7 @@ texture_region_size = Vector2i(64, 64)
 [sub_resource type="TileSet" id="TileSet_rlt5j"]
 tile_size = Vector2i(64, 64)
 physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_ifhio")
 sources/11 = SubResource("TileSetAtlasSource_d4la6")
 sources/1 = SubResource("TileSetAtlasSource_ifhio")
 sources/17 = SubResource("TileSetAtlasSource_mmo0x")
@@ -396,37 +327,6 @@ texture = ExtResource("13_igvfp")
 margins = Vector2i(32, 28)
 texture_region_size = Vector2i(64, 64)
 0:0/0 = 0
-1:0/0 = 0
-2:0/0 = 0
-3:0/0 = 0
-4:0/0 = 0
-5:0/0 = 0
-6:0/0 = 0
-7:0/0 = 0
-8:0/0 = 0
-9:0/0 = 0
-10:0/0 = 0
-11:0/0 = 0
-12:0/0 = 0
-13:0/0 = 0
-14:0/0 = 0
-15:0/0 = 0
-0:1/0 = 0
-1:1/0 = 0
-2:1/0 = 0
-3:1/0 = 0
-4:1/0 = 0
-5:1/0 = 0
-6:1/0 = 0
-7:1/0 = 0
-8:1/0 = 0
-9:1/0 = 0
-10:1/0 = 0
-11:1/0 = 0
-12:1/0 = 0
-13:1/0 = 0
-14:1/0 = 0
-15:1/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_cfmyv"]
 texture = ExtResource("14_w42ls")
@@ -517,6 +417,7 @@ texture_region_size = Vector2i(32, 32)
 
 [sub_resource type="TileSet" id="TileSet_jdvnf"]
 tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_5yhbb")
 sources/1 = SubResource("TileSetAtlasSource_5yhbb")
 sources/2 = SubResource("TileSetAtlasSource_cfmyv")
 sources/3 = SubResource("TileSetAtlasSource_uwgmg")
@@ -545,22 +446,47 @@ position = Vector2(-2, -7)
 texture = ExtResource("20_cb2k0")
 hframes = 8
 
-[node name="Camera2D" type="Camera2D" parent="Node2D/Player" unique_id=1775954739]
-position = Vector2(0, -1)
-script = ExtResource("12_s20o0")
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/Player" unique_id=500671969]
-position = Vector2(-2, 1)
+position = Vector2(-2, 16)
 shape = SubResource("RectangleShape2D_rlt5j")
 
 [node name="FootstepAudio" type="AudioStreamPlayer2D" parent="Node2D/Player" unique_id=892347102]
 volume_db = -14.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Node2D/Player" unique_id=1987654321]
-libraries = {
-&"": ExtResource("22_anim")
-}
-autoplay = "idle"
+libraries/ = ExtResource("22_anim")
+autoplay = &"idle"
+
+[node name="Player2" type="CharacterBody2D" parent="Node2D" unique_id=1876896425]
+position = Vector2(2144, 2144)
+script = ExtResource("4_co410")
+is_active_character = false
+character_name = "Archer"
+
+[node name="PlayerSprite" type="Sprite2D" parent="Node2D/Player2" unique_id=1105999822]
+z_index = 3
+texture_filter = 1
+position = Vector2(-2, -7)
+texture = ExtResource("23_archer_tex")
+hframes = 6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/Player2" unique_id=500671970]
+position = Vector2(-2, 16)
+shape = SubResource("RectangleShape2D_rlt5j")
+
+[node name="FootstepAudio" type="AudioStreamPlayer2D" parent="Node2D/Player2" unique_id=892347103]
+volume_db = -14.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Node2D/Player2" unique_id=1987654322]
+libraries/ = ExtResource("24_archer_anim")
+autoplay = &"idle"
+
+[node name="Camera2D" type="Camera2D" parent="Node2D" unique_id=1775954739]
+position = Vector2(354, 351)
+script = ExtResource("12_s20o0")
+
+[node name="PartyUI" type="CanvasLayer" parent="Node2D" unique_id=199887766]
+script = ExtResource("25_party_ui")
 
 [node name="Water_Background" type="TileMapLayer" parent="Node2D" unique_id=1323021561]
 z_index = -1

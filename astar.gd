@@ -17,11 +17,12 @@ static func find_path_debug(
 	ground_map,
 	obstacle_map,
 	start: Vector2i,
-	end: Vector2i
+	end: Vector2i,
+	blocked_cells: Array = []
 ) -> Dictionary:
 
 	var result := {
-		"path": [],
+		"path": [] as Array[Vector2i],
 		"steps": []
 	}
 
@@ -29,14 +30,32 @@ static func find_path_debug(
 	# VALIDASI START
 	# =========================================
 
-	if not is_walkable(ground_map, obstacle_map, start):
-		return result
+	if not is_walkable(ground_map, obstacle_map, start, blocked_cells):
+		var found_start_adj := false
+		for offset in [
+			Vector2i.DOWN,
+			Vector2i.UP,
+			Vector2i.RIGHT,
+			Vector2i.LEFT
+		]:
+			var adj: Vector2i = start + offset
+			if is_walkable(
+				ground_map,
+				obstacle_map,
+				adj,
+				blocked_cells
+			):
+				start = adj
+				found_start_adj = true
+				break
+		if not found_start_adj:
+			return result
 
 	# =========================================
 	# TARGET TERHALANG
 	# =========================================
 
-	if not is_walkable(ground_map, obstacle_map, end):
+	if not is_walkable(ground_map, obstacle_map, end, blocked_cells):
 		var found_adj := false
 
 		for offset in [
@@ -50,7 +69,8 @@ static func find_path_debug(
 			if is_walkable(
 				ground_map,
 				obstacle_map,
-				adj
+				adj,
+				blocked_cells
 			):
 				end = adj
 				found_adj = true
@@ -64,7 +84,8 @@ static func find_path_debug(
 	# =========================================
 
 	if start == end:
-		result["path"] = [start]
+		var typed_single_path: Array[Vector2i] = [start]
+		result["path"] = typed_single_path
 		return result
 
 	# =========================================
@@ -160,7 +181,8 @@ static func find_path_debug(
 			if not is_walkable(
 				ground_map,
 				obstacle_map,
-				neighbor_pos
+				neighbor_pos,
+				blocked_cells
 			):
 				continue
 
@@ -276,7 +298,12 @@ static func _pop_lowest_f(node_list: Array[PathNode]) -> PathNode:
 # Helper function to check if a tile is walkable
 # - ground_map: TileMapLayer, Array of TileMapLayers, or null (if null, all non-obstacle tiles are walkable)
 # - obstacle_map: TileMapLayer, Array of TileMapLayers, or null
-static func is_walkable(ground_map, obstacle_map, cell: Vector2i) -> bool:
+# - blocked_cells: Array of Vector2i to treat as obstacles (e.g. other player units)
+static func is_walkable(ground_map, obstacle_map, cell: Vector2i, blocked_cells: Array = []) -> bool:
+	# 0. Blocked cells check (e.g. other players)
+	if cell in blocked_cells:
+		return false
+
 	# 1. Obstacle check: if there is a tile in obstacle_map, it is blocked
 	if obstacle_map != null:
 		if obstacle_map is TileMapLayer:
@@ -304,23 +331,31 @@ static func is_walkable(ground_map, obstacle_map, cell: Vector2i) -> bool:
 	return true
 
 # The main custom pathfinding function
-static func find_path(ground_map, obstacle_map, start: Vector2i, end: Vector2i) -> Array[Vector2i]:
+static func find_path(ground_map, obstacle_map, start: Vector2i, end: Vector2i, blocked_cells: Array = []) -> Array[Vector2i]:
 	debug_open_nodes.clear()
 	debug_closed_nodes.clear()
 
 	debug_start = start
 	debug_end = end
 	
-	# If start is blocked, cannot pathfind
-	if not is_walkable(ground_map, obstacle_map, start):
-		return []
+	# If start is blocked, try adjacent walkable tile
+	if not is_walkable(ground_map, obstacle_map, start, blocked_cells):
+		var found_start_adj = false
+		for offset in [Vector2i.DOWN, Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT]:
+			var adj = start + offset
+			if is_walkable(ground_map, obstacle_map, adj, blocked_cells):
+				start = adj
+				found_start_adj = true
+				break
+		if not found_start_adj:
+			return []
 
 	# If target is directly on an obstacle, try adjacent walkable tile so the player walks up to it
-	if not is_walkable(ground_map, obstacle_map, end):
+	if not is_walkable(ground_map, obstacle_map, end, blocked_cells):
 		var found_adj = false
 		for offset in [Vector2i.DOWN, Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT]:
 			var adj = end + offset
-			if is_walkable(ground_map, obstacle_map, adj):
+			if is_walkable(ground_map, obstacle_map, adj, blocked_cells):
 				end = adj
 				found_adj = true
 				break
@@ -329,7 +364,8 @@ static func find_path(ground_map, obstacle_map, start: Vector2i, end: Vector2i) 
 
 	# If already at destination
 	if start == end:
-		return [start]
+		var typed_single: Array[Vector2i] = [start]
+		return typed_single
 
 	var open_list: Array[PathNode] = []
 	var open_dict: Dictionary = {}
@@ -375,7 +411,7 @@ static func find_path(ground_map, obstacle_map, start: Vector2i, end: Vector2i) 
 				continue
 				
 			# Check tile maps validity (walkable ground, no obstacle)
-			if not is_walkable(ground_map, obstacle_map, neighbor_pos):
+			if not is_walkable(ground_map, obstacle_map, neighbor_pos, blocked_cells):
 				continue
 				
 			# Calculate costs

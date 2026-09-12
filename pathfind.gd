@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+@onready var ground_map_layer: TileMapLayer = $"../Ground"
+@onready var deco_ground_map_layer: TileMapLayer = $"../Deco_Ground" if has_node("../Deco_Ground") else null
 @onready var obstacle_map_layer: TileMapLayer = $"../Obstacles"
 @onready var path_debug: Node2D = $"../PathDebug"
 
@@ -10,8 +12,11 @@ var debug_path: Array[Vector2] = []
 @onready var animation_player: AnimationPlayer = $AnimationPlayer if has_node("AnimationPlayer") else null
 @onready var footstep_player: AudioStreamPlayer2D = $FootstepAudio if has_node("FootstepAudio") else null
 
+@export var is_active_character: bool = true
+@export var character_name: String = "Pawn"
 @export var current_tool: String = "" # Options: "", "axe", "hammer", "knife", "pickaxe", "gold", "meat", "wood"
 var is_interacting: bool = false
+var stuck_counter: int = 0
 
 var footstep_sounds: Array[AudioStream] = [
 	preload("res://audio/grass_step_1.wav"),
@@ -25,6 +30,8 @@ var distance_accumulated: float = 0.0
 var step_cooldown: float = 0.0
 
 func _ready() -> void:
+	add_to_group("players")
+
 	if footstep_player == null:
 		if has_node("FootstepAudio"):
 			footstep_player = $FootstepAudio
@@ -51,14 +58,34 @@ func _ready() -> void:
 
 	_update_animation(false)
 
-#func _ready() -> void:
-	#if obstacle_map_layer:
-		# Convert global position to map coords
-		#var map_pos = obstacle_map_layer.local_to_map(obstacle_map_layer.to_local(global_position))
-		# Snap centered position correctly in global space
-		#global_position = obstacle_map_layer.to_global(obstacle_map_layer.map_to_local(map_pos))
+func set_active(active: bool) -> void:
+	is_active_character = active
+	if not active:
+		current_path.clear()
+		_update_animation(false)
+
+func get_other_player_tiles() -> Array:
+	var tiles: Array = []
+	if not obstacle_map_layer:
+		return tiles
+	for p in get_tree().get_nodes_in_group("players"):
+		if p != self and p is CharacterBody2D and is_instance_valid(p):
+			var tile: Vector2i = obstacle_map_layer.local_to_map(
+				obstacle_map_layer.to_local(p.global_position)
+			)
+			if not tile in tiles:
+				tiles.append(tile)
+			if p.get("current_path") != null and not p.current_path.is_empty():
+				var dest_tile: Vector2i = obstacle_map_layer.local_to_map(
+					obstacle_map_layer.to_local(p.current_path[p.current_path.size() - 1])
+				)
+				if not dest_tile in tiles:
+					tiles.append(dest_tile)
+	return tiles
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_active_character:
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		var mouse_pos = get_global_mouse_position()
 		move_to(mouse_pos)
@@ -75,65 +102,86 @@ func move_to(pos: Vector2) -> void:
 		obstacle_map_layer.to_local(pos)
 	)
 
-	# Jangan klik obstacle
-	if obstacle_map_layer.get_cell_source_id(target_tile) != -1:
+	# 1. Jangan proses jika klik di tile yang sama dengan posisi karakter saat ini (fix bug crash)
+	if start_tile == target_tile:
 		return
 
+	# 2. Ambil tile player lain untuk collision & path avoidance
+	var other_tiles: Array = get_other_player_tiles()
+
+	# Layer ground yang valid (termasuk pulau utama dan deco ground)
+	var ground_layers: Array = []
+	if ground_map_layer:
+		ground_layers.append(ground_map_layer)
+	if deco_ground_map_layer:
+		ground_layers.append(deco_ground_map_layer)
+
+	# Jika target klik tepat di tile player lain, cari tile adjacent yang kosong agar tidak berada di tile yang sama
+	if target_tile in other_tiles:
+		var found_adj := false
+		for offset in [Vector2i.DOWN, Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT]:
+			var candidate: Vector2i = target_tile + offset
+			if candidate != start_tile and not (candidate in other_tiles) and CustomAStar.is_walkable(ground_layers, obstacle_map_layer, candidate, other_tiles):
+				target_tile = candidate
+				found_adj = true
+				break
+		if not found_adj:
+			return
+
 	# =========================================
-	# HITUNG A* + RECORD SEMUA LANGKAH
+	# HITUNG A* + RECORD SEMUA LANGKAH (HINDARI TILE PLAYER LAIN)
 	# =========================================
 
 	var debug_result: Dictionary = (
 		CustomAStar.find_path_debug(
-			null,
+			ground_layers,
 			obstacle_map_layer,
 			start_tile,
-			target_tile
+			target_tile,
+			other_tiles
 		)
 	)
 	
-	if debug_result["path"] == []:
+	if not debug_result.has("path") or debug_result["path"].is_empty():
 		return
 
-	var astar_path: Array[Vector2i] = (
-		debug_result["path"]
-	)
+	var astar_path: Array[Vector2i] = []
+	astar_path.assign(debug_result["path"])
 
 	var debug_steps: Array = (
 		debug_result["steps"]
 	)
 
-	if astar_path.is_empty():
+	if astar_path.size() <= 1:
 		return
 
 	# =========================================
-	# PUTAR ANIMASI DEBUG
+	# PUTAR ANIMASI DEBUG (JIKA DIAKTIFKAN)
 	# =========================================
 
-	var animation_completed: bool = await $"../PathDebug".play_animation(
-	debug_steps,
-	astar_path
-	)
+	if path_debug != null:
+		var animation_completed: bool = await path_debug.play_animation(
+			debug_steps,
+			astar_path
+		)
 
-	if not animation_completed:
-		return
+		if not animation_completed:
+			return
 
 	# =========================================
 	# SET MOVEMENT PATH
 	# =========================================
 
 	current_path.clear()
+	stuck_counter = 0
 
 	for i in range(1, astar_path.size()):
-
 		var tile: Vector2i = astar_path[i]
-
 		var pixel_pos: Vector2 = (
 			obstacle_map_layer.to_global(
 				obstacle_map_layer.map_to_local(tile)
 			)
 		)
-
 		current_path.append(pixel_pos)
 
 func _physics_process(delta: float) -> void:
@@ -145,14 +193,47 @@ func _physics_process(delta: float) -> void:
 
 	if not is_moving:
 		distance_accumulated = step_distance_threshold * 0.6
+		stuck_counter = 0
 		return
 		
 	# Target world position
 	var target_pos = current_path[0]
 	var prev_pos = global_position
 	
-	# Move toward target position
-	global_position = global_position.move_toward(target_pos, delta * 500)
+	var to_target: Vector2 = target_pos - global_position
+	var step_amount: float = delta * 500.0
+	
+	if to_target.length() <= step_amount:
+		global_position = target_pos
+		current_path.pop_front()
+		stuck_counter = 0
+	else:
+		velocity = to_target.normalized() * 500.0
+		move_and_slide()
+		
+		# Collision dengan player lain: hentikan pergerakan agar tidak menembus atau bertumpuk
+		for i in range(get_slide_collision_count()):
+			var col = get_slide_collision(i)
+			var collider = col.get_collider()
+			if collider is CharacterBody2D and collider != self:
+				current_path.clear()
+				_update_animation(false)
+				stuck_counter = 0
+				return
+
+		# Check jika sudah dekat target (dalam 4 pixel), snap dan lanjutkan ke waypoint berikutnya
+		if global_position.distance_to(target_pos) <= 4.0:
+			global_position = target_pos
+			current_path.pop_front()
+			stuck_counter = 0
+		elif prev_pos.distance_to(global_position) < 0.1:
+			stuck_counter += 1
+			if stuck_counter > 10:
+				# Safeguard: jika pergerakan terhambat selama 10 physics frame, lanjutkan waypoint
+				current_path.pop_front()
+				stuck_counter = 0
+		else:
+			stuck_counter = 0
 	
 	# Trigger grass footsteps based on distance moved and cooldown
 	var moved_dist = prev_pos.distance_to(global_position)
@@ -162,15 +243,10 @@ func _physics_process(delta: float) -> void:
 		distance_accumulated = 0.0
 		step_cooldown = 0.24
 	
-	if target_pos.x < global_position.x:
+	if target_pos.x < global_position.x - 1.0:
 		sprite.flip_h = true
-	elif target_pos.x > global_position.x:
+	elif target_pos.x > global_position.x + 1.0:
 		sprite.flip_h = false
-	
-	# Check if reached target (within 1 pixel), then remove point from array to target next tile
-	if global_position.distance_to(target_pos) < 1.0:
-		global_position = target_pos
-		current_path.pop_front()
 
 func play_footstep() -> void:
 	if footstep_sounds.is_empty() or footstep_player == null:
@@ -211,6 +287,12 @@ func play_interact(tool_name: String = "") -> void:
 	if animation_player.has_animation(anim_name):
 		is_interacting = true
 		animation_player.play(anim_name)
+		await animation_player.animation_finished
+		is_interacting = false
+		_update_animation(not current_path.is_empty())
+	elif animation_player.has_animation("shoot"):
+		is_interacting = true
+		animation_player.play("shoot")
 		await animation_player.animation_finished
 		is_interacting = false
 		_update_animation(not current_path.is_empty())
