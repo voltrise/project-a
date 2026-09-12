@@ -2,7 +2,7 @@ extends Node2D
 
 @onready var obstacle_map_layer: TileMapLayer = $"../Obstacles"
 
-@export var step_delay: float = 0.15
+@export var step_delay: float = 0.5
 
 @export var open_color: Color = Color(0.25, 0.55, 1.0, 0.55)
 @export var closed_color: Color = Color(0.9, 0.25, 0.25, 0.55)
@@ -284,7 +284,7 @@ func play_animation(
 		queue_redraw()
 
 		await get_tree().create_timer(
-			speed_slider.value
+			0.5 - speed_slider.value
 		).timeout
 
 	if my_animation_id != animation_id:
