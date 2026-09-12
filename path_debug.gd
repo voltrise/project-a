@@ -22,8 +22,16 @@ var is_animating: bool = false
 var animation_id: int = 0
 
 # =========================================
-# DEBUGGER UI
+# DEBUGGER UI & FONT
 # =========================================
+
+var debug_open_button: Button
+var close_button: Button
+var path_debug_button: Button
+var is_path_debug_enabled: bool = true
+
+var font_regular: Font = null
+var font_bold: Font = null
 
 var debug_panel: PanelContainer
 var step_label: Label
@@ -42,8 +50,24 @@ var animation_finished: bool = false
 
 func _ready() -> void:
 	z_index = 100
-
+	_load_fonts()
 	_create_debugger_ui()
+
+func _load_fonts() -> void:
+	if ResourceLoader.exists("res://fonts/PixelifySans-Regular.ttf"):
+		font_regular = load("res://fonts/PixelifySans-Regular.ttf")
+	if ResourceLoader.exists("res://fonts/PixelifySans-Bold.ttf"):
+		font_bold = load("res://fonts/PixelifySans-Bold.ttf")
+
+	if font_regular == null:
+		var sys := SystemFont.new()
+		sys.font_names = PackedStringArray(["Pixelify Sans", "PixelifySans"])
+		font_regular = sys
+	if font_bold == null:
+		var sys_b := SystemFont.new()
+		sys_b.font_names = PackedStringArray(["Pixelify Sans", "PixelifySans"])
+		sys_b.font_weight = 700
+		font_bold = sys_b
 
 func _create_debugger_ui() -> void:
 	# CanvasLayer agar UI tetap di layar
@@ -51,12 +75,31 @@ func _create_debugger_ui() -> void:
 	canvas_layer.name = "DebuggerCanvas"
 	add_child(canvas_layer)
 
+	# Theme dengan font Pixelify Sans
+	var theme := Theme.new()
+	if font_regular != null:
+		theme.default_font = font_regular
+	theme.default_font_size = 11
+
+	# Button DEBUG di ujung kiri atas saat panel ditutup
+	debug_open_button = Button.new()
+	debug_open_button.name = "DebugOpenButton"
+	debug_open_button.text = "DEBUG"
+	debug_open_button.position = Vector2(12, 12)
+	debug_open_button.custom_minimum_size = Vector2(76, 30)
+	debug_open_button.visible = false
+	debug_open_button.theme = theme
+	if font_bold != null:
+		debug_open_button.add_theme_font_override("font", font_bold)
+	debug_open_button.pressed.connect(_on_open_button_pressed)
+	canvas_layer.add_child(debug_open_button)
+
 	# Panel utama
 	debug_panel = PanelContainer.new()
 	debug_panel.name = "DebuggerPanel"
-
 	debug_panel.position = Vector2(12, 12)
-	debug_panel.size = Vector2(190, 230)
+	debug_panel.custom_minimum_size = Vector2(210, 0)
+	debug_panel.theme = theme
 
 	canvas_layer.add_child(debug_panel)
 
@@ -64,7 +107,7 @@ func _create_debugger_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
 	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_top", 8)
 	margin.add_theme_constant_override("margin_bottom", 10)
 
 	debug_panel.add_child(margin)
@@ -75,13 +118,27 @@ func _create_debugger_ui() -> void:
 	margin.add_child(vbox)
 
 	# =========================================
-	# TITLE
+	# HEADER (TITLE + [X] BUTTON)
 	# =========================================
 
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 4)
+	vbox.add_child(header)
+
 	var title := Label.new()
-	title.text = "A* PATHFINDING DEBUGGER"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
+	title.text = "A* DEBUGGER"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if font_bold != null:
+		title.add_theme_font_override("font", font_bold)
+	header.add_child(title)
+
+	close_button = Button.new()
+	close_button.text = "[X]"
+	close_button.custom_minimum_size = Vector2(28, 22)
+	if font_bold != null:
+		close_button.add_theme_font_override("font", font_bold)
+	close_button.pressed.connect(_on_close_button_pressed)
+	header.add_child(close_button)
 
 	# =========================================
 	# STATUS
@@ -141,6 +198,18 @@ func _create_debugger_ui() -> void:
 	reset_button.pressed.connect(_on_reset_pressed)
 
 	# =========================================
+	# PATH DEBUG TOGGLE
+	# =========================================
+
+	path_debug_button = Button.new()
+	path_debug_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if font_bold != null:
+		path_debug_button.add_theme_font_override("font", font_bold)
+	path_debug_button.pressed.connect(_on_toggle_path_debug_pressed)
+	vbox.add_child(path_debug_button)
+	_update_path_debug_button()
+
+	# =========================================
 	# SPEED
 	# =========================================
 
@@ -169,6 +238,41 @@ func _create_debugger_ui() -> void:
 	legend.text += "PATH    = final path"
 
 	vbox.add_child(legend)
+
+func _on_close_button_pressed() -> void:
+	debug_panel.visible = false
+	debug_open_button.visible = true
+
+func _on_open_button_pressed() -> void:
+	debug_panel.visible = true
+	debug_open_button.visible = false
+
+func _on_toggle_path_debug_pressed() -> void:
+	is_path_debug_enabled = not is_path_debug_enabled
+	_update_path_debug_button()
+	if not is_path_debug_enabled:
+		animation_id += 1
+		is_animating = false
+		is_paused = true
+		current_step = -1
+		debug_steps.clear()
+		final_path.clear()
+		queue_redraw()
+		if status_label != null:
+			status_label.text = "DEBUG OFF"
+	else:
+		if status_label != null:
+			status_label.text = "READY"
+
+func _update_path_debug_button() -> void:
+	if path_debug_button == null:
+		return
+	if is_path_debug_enabled:
+		path_debug_button.text = "PATH DEBUG: ON"
+		path_debug_button.modulate = Color(0.65, 1.0, 0.65)
+	else:
+		path_debug_button.text = "PATH DEBUG: OFF"
+		path_debug_button.modulate = Color(1.0, 0.65, 0.65)
 
 func _update_debugger_ui() -> void:
 	if step_label == null:
@@ -248,6 +352,12 @@ func play_animation(
 	steps: Array,
 	path: Array[Vector2i]
 ) -> bool:
+	if not is_path_debug_enabled:
+		debug_steps.clear()
+		final_path.clear()
+		queue_redraw()
+		return true
+
 	animation_id += 1
 
 	var my_animation_id: int = animation_id
@@ -270,6 +380,8 @@ func play_animation(
 	queue_redraw()
 
 	while current_step < debug_steps.size() - 1:
+		if not is_path_debug_enabled:
+			return true
 
 		if my_animation_id != animation_id:
 			return false
@@ -286,6 +398,9 @@ func play_animation(
 		await get_tree().create_timer(
 			0.5 - speed_slider.value
 		).timeout
+
+	if not is_path_debug_enabled:
+		return true
 
 	if my_animation_id != animation_id:
 		return false
@@ -347,6 +462,9 @@ func _get_tile_size() -> Vector2:
 
 
 func _draw() -> void:
+	if not is_path_debug_enabled:
+		return
+
 	if obstacle_map_layer == null:
 		return
 
@@ -473,8 +591,9 @@ func _draw() -> void:
 				2.0
 			)
 
+			var draw_font: Font = font_bold if font_bold != null else (font_regular if font_regular != null else ThemeDB.fallback_font)
 			draw_string(
-				ThemeDB.fallback_font,
+				draw_font,
 				center + Vector2(-2, 2),
 				str(i),
 				HORIZONTAL_ALIGNMENT_LEFT,
@@ -490,7 +609,7 @@ func _draw_values(
 	f: float
 ) -> void:
 
-	var font := ThemeDB.fallback_font
+	var font: Font = font_regular if font_regular != null else ThemeDB.fallback_font
 	var tile_size := _get_tile_size()
 
 	# Mulai dari sisi kiri tile
