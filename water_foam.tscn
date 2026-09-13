@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://water_foam.gd" id="1_water_foam"]
+
+[node name="WaterFoam" type="Node2D"]
+z_index = -1
+texture_filter = 1
+script = ExtResource("1_water_foam")
