@@ -103,9 +103,9 @@ func _ready() -> void:
 	_update_cards()
 
 	# Listen to CharacterManager if new characters are rolled
-	if typeof(CharacterManager) != TYPE_NIL and CharacterManager != null:
-		if CharacterManager.has_signal("character_added"):
-			CharacterManager.character_added.connect(_on_character_obtained)
+	var cm = get_node_or_null("/root/CharacterManager")
+	if cm != null and cm.has_signal("character_added"):
+		cm.character_added.connect(_on_character_obtained)
 
 	# Auto-close if RNG roll starts so it doesn't obstruct the gacha animation
 	var roller := get_tree().root.find_child("RngRoller", true, false)
@@ -446,9 +446,10 @@ func _populate_card(slot: Control, char_data: Dictionary) -> void:
 	var is_owned: bool = false
 	var count: int = 0
 	var char_id: String = char_data.get("id", "")
-	if typeof(CharacterManager) != TYPE_NIL and CharacterManager != null:
-		is_owned = CharacterManager.has_character(char_id)
-		count = CharacterManager.get_character_count(char_id)
+	var cm = get_node_or_null("/root/CharacterManager")
+	if cm != null:
+		is_owned = cm.has_character(char_id)
+		count = cm.get_character_count(char_id)
 
 	if is_owned:
 		status_label.text = "x%d" % count

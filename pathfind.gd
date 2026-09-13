@@ -83,6 +83,20 @@ func get_other_player_tiles() -> Array:
 					tiles.append(dest_tile)
 	return tiles
 
+func get_all_blocked_tiles() -> Array:
+	var tiles: Array = get_other_player_tiles()
+	if not obstacle_map_layer:
+		return tiles
+
+	# Ambil semua tile yang diblokir oleh portal di peta sebagai obstacle
+	for portal in get_tree().get_nodes_in_group("portals"):
+		if portal != null and is_instance_valid(portal) and portal.has_method("get_blocked_tiles"):
+			var p_tiles: Array = portal.get_blocked_tiles(obstacle_map_layer)
+			for t in p_tiles:
+				if not t in tiles:
+					tiles.append(t)
+	return tiles
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active_character:
 		return
@@ -106,8 +120,8 @@ func move_to(pos: Vector2) -> void:
 	if start_tile == target_tile:
 		return
 
-	# 2. Ambil tile player lain untuk collision & path avoidance
-	var other_tiles: Array = get_other_player_tiles()
+	# 2. Ambil semua tile yang diblokir (player lain & portal) untuk collision & path avoidance
+	var blocked_tiles: Array = get_all_blocked_tiles()
 
 	# Layer ground yang valid (termasuk pulau utama dan deco ground)
 	var ground_layers: Array = []
@@ -116,12 +130,12 @@ func move_to(pos: Vector2) -> void:
 	if deco_ground_map_layer:
 		ground_layers.append(deco_ground_map_layer)
 
-	# Jika target klik tepat di tile player lain, cari tile adjacent yang kosong agar tidak berada di tile yang sama
-	if target_tile in other_tiles:
+	# Jika target klik tepat di tile yang terblokir (portal / player lain), cari tile adjacent yang kosong terdekat
+	if target_tile in blocked_tiles:
 		var found_adj := false
 		for offset in [Vector2i.DOWN, Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT]:
 			var candidate: Vector2i = target_tile + offset
-			if candidate != start_tile and not (candidate in other_tiles) and CustomAStar.is_walkable(ground_layers, obstacle_map_layer, candidate, other_tiles):
+			if candidate != start_tile and not (candidate in blocked_tiles) and CustomAStar.is_walkable(ground_layers, obstacle_map_layer, candidate, blocked_tiles):
 				target_tile = candidate
 				found_adj = true
 				break
@@ -129,7 +143,7 @@ func move_to(pos: Vector2) -> void:
 			return
 
 	# =========================================
-	# HITUNG A* + RECORD SEMUA LANGKAH (HINDARI TILE PLAYER LAIN)
+	# HITUNG A* + RECORD SEMUA LANGKAH (HINDARI TILE BLOCKED & PORTAL)
 	# =========================================
 
 	var debug_result: Dictionary = (
@@ -138,7 +152,7 @@ func move_to(pos: Vector2) -> void:
 			obstacle_map_layer,
 			start_tile,
 			target_tile,
-			other_tiles
+			blocked_tiles
 		)
 	)
 	
