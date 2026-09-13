@@ -26,6 +26,7 @@
 [ext_resource type="Script" uid="uid://cjucn2kvdpy5n" path="res://party_ui.gd" id="25_party_ui"]
 [ext_resource type="PackedScene" uid="uid://bxg36h62a07l0" path="res://dice_system.tscn" id="26_dice_sys"]
 [ext_resource type="Script" path="res://npc_spawner.gd" id="27_spawner"]
+[ext_resource type="PackedScene" uid="uid://d3y7x7q8x9b6o" path="res://index_ui.tscn" id="28_index_ui"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlt5j"]
 size = Vector2(32, 24)
@@ -526,3 +527,5 @@ script = ExtResource("19_w42ls")
 
 [node name="NPCs" type="Node2D" parent="Node2D" unique_id=987654321]
 script = ExtResource("27_spawner")
+
+[node name="IndexUI" parent="Node2D" unique_id=930671711 instance=ExtResource("28_index_ui")]
