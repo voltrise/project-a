@@ -31,7 +31,7 @@ var final_path: Array[Vector2i] = []
 var current_step: int = -1
 var is_animating: bool = false
 var animation_id: int = 0
-var is_path_debug_enabled: bool = true
+var is_path_debug_enabled: bool = false
 var is_paused: bool = true
 var animation_finished: bool = false
 
@@ -43,7 +43,7 @@ var ucs_final_path: Array[Vector2i] = []
 var ucs_current_step: int = -1
 var ucs_is_animating: bool = false
 var ucs_animation_id: int = 0
-var is_ucs_debug_enabled: bool = true
+var is_ucs_debug_enabled: bool = false
 var ucs_is_paused: bool = true
 var ucs_animation_finished: bool = false
 var ucs_active_npc_name: String = ""
