@@ -1,9 +1,7 @@
 extends CharacterBody2D
 
-@onready var ground_map_layer: TileMapLayer = $"../Ground"
-@onready var deco_ground_map_layer: TileMapLayer = $"../Deco_Ground" if has_node("../Deco_Ground") else null
-@onready var obstacle_map_layer: TileMapLayer = $"../Obstacles"
-@onready var path_debug: Node2D = $"../PathDebug"
+@onready var path_map_layer: TileMapLayer = $"../Path" if has_node("../Path") else null
+@onready var path_debug: Node2D = $"../PathDebug" if has_node("../PathDebug") else null
 
 var current_path: Array[Vector2] = []
 var debug_path: Array[Vector2] = []
@@ -66,18 +64,18 @@ func set_active(active: bool) -> void:
 
 func get_other_player_tiles() -> Array:
 	var tiles: Array = []
-	if not obstacle_map_layer:
+	if not path_map_layer:
 		return tiles
 	for p in get_tree().get_nodes_in_group("players"):
 		if p != self and p is CharacterBody2D and is_instance_valid(p):
-			var tile: Vector2i = obstacle_map_layer.local_to_map(
-				obstacle_map_layer.to_local(p.global_position)
+			var tile: Vector2i = path_map_layer.local_to_map(
+				path_map_layer.to_local(p.global_position)
 			)
 			if not tile in tiles:
 				tiles.append(tile)
 			if p.get("current_path") != null and not p.current_path.is_empty():
-				var dest_tile: Vector2i = obstacle_map_layer.local_to_map(
-					obstacle_map_layer.to_local(p.current_path[p.current_path.size() - 1])
+				var dest_tile: Vector2i = path_map_layer.local_to_map(
+					path_map_layer.to_local(p.current_path[p.current_path.size() - 1])
 				)
 				if not dest_tile in tiles:
 					tiles.append(dest_tile)
@@ -85,13 +83,13 @@ func get_other_player_tiles() -> Array:
 
 func get_all_blocked_tiles() -> Array:
 	var tiles: Array = get_other_player_tiles()
-	if not obstacle_map_layer:
+	if not path_map_layer:
 		return tiles
 
 	# Ambil semua tile yang diblokir oleh portal di peta sebagai obstacle
 	for portal in get_tree().get_nodes_in_group("portals"):
 		if portal != null and is_instance_valid(portal) and portal.has_method("get_blocked_tiles"):
-			var p_tiles: Array = portal.get_blocked_tiles(obstacle_map_layer)
+			var p_tiles: Array = portal.get_blocked_tiles(path_map_layer)
 			for t in p_tiles:
 				if not t in tiles:
 					tiles.append(t)
@@ -105,15 +103,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_to(mouse_pos)
 		
 func move_to(pos: Vector2) -> void:
-	if not obstacle_map_layer:
+	if not path_map_layer:
 		return
 
-	var start_tile: Vector2i = obstacle_map_layer.local_to_map(
-		obstacle_map_layer.to_local(global_position)
+	var start_tile: Vector2i = path_map_layer.local_to_map(
+		path_map_layer.to_local(global_position)
 	)
 
-	var target_tile: Vector2i = obstacle_map_layer.local_to_map(
-		obstacle_map_layer.to_local(pos)
+	var target_tile: Vector2i = path_map_layer.local_to_map(
+		path_map_layer.to_local(pos)
 	)
 
 	# 1. Jangan proses jika klik di tile yang sama dengan posisi karakter saat ini (fix bug crash)
@@ -123,19 +121,12 @@ func move_to(pos: Vector2) -> void:
 	# 2. Ambil semua tile yang diblokir (player lain & portal) untuk collision & path avoidance
 	var blocked_tiles: Array = get_all_blocked_tiles()
 
-	# Layer ground yang valid (termasuk pulau utama dan deco ground)
-	var ground_layers: Array = []
-	if ground_map_layer:
-		ground_layers.append(ground_map_layer)
-	if deco_ground_map_layer:
-		ground_layers.append(deco_ground_map_layer)
-
-	# Jika target klik tepat di tile yang terblokir (portal / player lain), cari tile adjacent yang kosong terdekat
-	if target_tile in blocked_tiles:
+	# Jika target klik tepat di tile yang terblokir atau non-walkable di Path, cari tile adjacent yang walkable terdekat
+	if not CustomAStar.is_walkable(path_map_layer, target_tile, blocked_tiles):
 		var found_adj := false
 		for offset in [Vector2i.DOWN, Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT]:
 			var candidate: Vector2i = target_tile + offset
-			if candidate != start_tile and not (candidate in blocked_tiles) and CustomAStar.is_walkable(ground_layers, obstacle_map_layer, candidate, blocked_tiles):
+			if candidate != start_tile and CustomAStar.is_walkable(path_map_layer, candidate, blocked_tiles):
 				target_tile = candidate
 				found_adj = true
 				break
@@ -143,13 +134,12 @@ func move_to(pos: Vector2) -> void:
 			return
 
 	# =========================================
-	# HITUNG A* + RECORD SEMUA LANGKAH (HINDARI TILE BLOCKED & PORTAL)
+	# HITUNG A* + RECORD SEMUA LANGKAH (HANYA DARI LAYER PATH)
 	# =========================================
 
 	var debug_result: Dictionary = (
 		CustomAStar.find_path_debug(
-			ground_layers,
-			obstacle_map_layer,
+			path_map_layer,
 			start_tile,
 			target_tile,
 			blocked_tiles
@@ -192,8 +182,8 @@ func move_to(pos: Vector2) -> void:
 	for i in range(1, astar_path.size()):
 		var tile: Vector2i = astar_path[i]
 		var pixel_pos: Vector2 = (
-			obstacle_map_layer.to_global(
-				obstacle_map_layer.map_to_local(tile)
+			path_map_layer.to_global(
+				path_map_layer.map_to_local(tile)
 			)
 		)
 		current_path.append(pixel_pos)

@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var obstacle_map_layer: TileMapLayer = $"../Obstacles"
+@onready var obstacle_map_layer: TileMapLayer = $"../Obstacles" if has_node("../Obstacles") else ($"../Ground" if has_node("../Ground") else ($"../Path" if has_node("../Path") else null))
 
 @export var step_delay: float = 0.5
 

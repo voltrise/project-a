@@ -43,9 +43,7 @@ var _area_hovered: bool = false
 var _card_tween: Tween = null
 var _outline_material: ShaderMaterial = null
 
-@onready var ground_map_layer: TileMapLayer = $"../../Ground" if has_node("../../Ground") else get_node_or_null("../Ground")
-@onready var deco_ground_map_layer: TileMapLayer = $"../../Deco_Ground" if has_node("../../Deco_Ground") else get_node_or_null("../Deco_Ground")
-@onready var obstacle_map_layer: TileMapLayer = $"../../Obstacles" if has_node("../../Obstacles") else get_node_or_null("../Obstacles")
+@onready var path_map_layer: TileMapLayer = $"../../Path" if has_node("../../Path") else get_node_or_null("../Path")
 @onready var path_debug: Node2D = $"../../PathDebug" if has_node("../../PathDebug") else get_node_or_null("../PathDebug")
 
 var current_path: Array[Vector2] = []
@@ -270,27 +268,20 @@ func _process_follow(delta: float) -> void:
 	if current_path.is_empty():
 		follow_repath_timer -= delta
 		if follow_repath_timer <= 0.0:
-			if obstacle_map_layer:
-				var start_tile: Vector2i = obstacle_map_layer.local_to_map(
-					obstacle_map_layer.to_local(global_position)
+			if path_map_layer:
+				var start_tile: Vector2i = path_map_layer.local_to_map(
+					path_map_layer.to_local(global_position)
 				)
-				var target_tile: Vector2i = obstacle_map_layer.local_to_map(
-					obstacle_map_layer.to_local(follow_target.global_position)
+				var target_tile: Vector2i = path_map_layer.local_to_map(
+					path_map_layer.to_local(follow_target.global_position)
 				)
 
 				if start_tile != target_tile:
-					var ground_layers: Array = []
-					if ground_map_layer:
-						ground_layers.append(ground_map_layer)
-					if deco_ground_map_layer:
-						ground_layers.append(deco_ground_map_layer)
-
 					# UCS Debugger ONLY triggers for following NPC
 					if is_following and path_debug != null and path_debug.get("is_ucs_debug_enabled") == true and path_debug.has_method("play_ucs_animation"):
 						follow_is_repathing = true
 						var debug_result: Dictionary = CustomUCS.find_path_debug(
-							ground_layers,
-							obstacle_map_layer,
+							path_map_layer,
 							start_tile,
 							target_tile
 						)
@@ -311,8 +302,8 @@ func _process_follow(delta: float) -> void:
 							current_path.clear()
 							for i in range(1, ucs_path.size()):
 								var tile: Vector2i = ucs_path[i]
-								var pixel_pos: Vector2 = obstacle_map_layer.to_global(
-									obstacle_map_layer.map_to_local(tile)
+								var pixel_pos: Vector2 = path_map_layer.to_global(
+									path_map_layer.map_to_local(tile)
 								)
 								current_path.append(pixel_pos)
 							follow_repath_timer = 0.0
@@ -321,8 +312,7 @@ func _process_follow(delta: float) -> void:
 							follow_repath_timer = 0.5
 					else:
 						var ucs_path: Array[Vector2i] = CustomUCS.find_path(
-							ground_layers,
-							obstacle_map_layer,
+							path_map_layer,
 							start_tile,
 							target_tile
 						)
@@ -331,8 +321,8 @@ func _process_follow(delta: float) -> void:
 							current_path.clear()
 							for i in range(1, ucs_path.size()):
 								var tile: Vector2i = ucs_path[i]
-								var pixel_pos: Vector2 = obstacle_map_layer.to_global(
-									obstacle_map_layer.map_to_local(tile)
+								var pixel_pos: Vector2 = path_map_layer.to_global(
+									path_map_layer.map_to_local(tile)
 								)
 								current_path.append(pixel_pos)
 							follow_repath_timer = 0.0
@@ -404,11 +394,11 @@ func _physics_process(delta: float) -> void:
 			distance_accumulated = step_distance_threshold * 0.5
 
 func wander() -> void:
-	if not obstacle_map_layer:
+	if not path_map_layer:
 		return
 
-	var start_tile: Vector2i = obstacle_map_layer.local_to_map(
-		obstacle_map_layer.to_local(global_position)
+	var start_tile: Vector2i = path_map_layer.local_to_map(
+		path_map_layer.to_local(global_position)
 	)
 
 	var offset := Vector2i(randi_range(-4, 4), randi_range(-4, 4))
@@ -418,16 +408,9 @@ func wander() -> void:
 
 	var target_tile: Vector2i = start_tile + offset
 
-	var ground_layers: Array = []
-	if ground_map_layer:
-		ground_layers.append(ground_map_layer)
-	if deco_ground_map_layer:
-		ground_layers.append(deco_ground_map_layer)
-
 	# Wandering NPCs never trigger the debugger
 	var ucs_path: Array[Vector2i] = CustomUCS.find_path(
-		ground_layers,
-		obstacle_map_layer,
+		path_map_layer,
 		start_tile,
 		target_tile
 	)
@@ -439,8 +422,8 @@ func wander() -> void:
 	current_path.clear()
 	for i in range(1, ucs_path.size()):
 		var tile: Vector2i = ucs_path[i]
-		var pixel_pos: Vector2 = obstacle_map_layer.to_global(
-			obstacle_map_layer.map_to_local(tile)
+		var pixel_pos: Vector2 = path_map_layer.to_global(
+			path_map_layer.map_to_local(tile)
 		)
 		current_path.append(pixel_pos)
 

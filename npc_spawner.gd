@@ -20,15 +20,13 @@ func _ready() -> void:
 	_connect_character_manager()
 
 func _resolve_layers() -> void:
-	# Search for walkable world layer (checks "World", then "Ground", etc.)
-	world_layer = _find_tilemap_layer([world_layer_name, "Ground", "ground", "world"])
+	# Search for walkable layer (checks "Path", then "World", "Ground", etc.)
+	world_layer = _find_tilemap_layer(["Path", world_layer_name, "Ground", "ground", "world"])
 	if world_layer == null:
-		push_warning("[NPCSpawner] Walkable layer ('World' or 'Ground') not found!")
+		push_warning("[NPCSpawner] Walkable layer ('Path', 'World' or 'Ground') not found!")
 
-	# Search for obstacle layer (checks "Obstacle", then "Obstacles", etc.)
+	# Search for obstacle layer (optional)
 	obstacle_layer = _find_tilemap_layer([obstacle_layer_name, "Obstacles", "obstacles", "obstacle"])
-	if obstacle_layer == null:
-		push_warning("[NPCSpawner] Obstacle layer ('Obstacle' or 'Obstacles') not found!")
 
 	# Optional deco layer
 	deco_layer = _find_tilemap_layer([deco_layer_name, "Deco_Objects", "DecoObjects"])
