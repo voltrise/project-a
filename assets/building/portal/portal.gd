@@ -87,41 +87,6 @@ func _ready() -> void:
 
 	_set_portal_active(false)
 
-## Returns all tilemap coordinates that this portal blocks for A* pathfinding
-func get_blocked_tiles(tilemap: TileMapLayer) -> Array[Vector2i]:
-	var tiles: Array[Vector2i] = []
-	if tilemap == null or not is_inside_tree():
-		return tiles
-
-	# Calculate bounding box of the solid stone arch structure in world space
-	var center: Vector2 = global_position
-	var rect_size: Vector2 = Vector2(120, 70) * global_scale
-
-	var col_shape := get_node_or_null("SolidBody/SolidShape") as CollisionShape2D
-	if col_shape and col_shape.shape is RectangleShape2D:
-		center = col_shape.global_position
-		rect_size = (col_shape.shape as RectangleShape2D).size * global_scale
-	else:
-		center = global_position + Vector2(0, -10) * global_scale
-
-	var half := rect_size * 0.5
-	var min_world := center - half
-	var max_world := center + half
-
-	var min_tile := tilemap.local_to_map(tilemap.to_local(min_world))
-	var max_tile := tilemap.local_to_map(tilemap.to_local(max_world))
-
-	var x_start = min(min_tile.x, max_tile.x)
-	var x_end = max(min_tile.x, max_tile.x)
-	var y_start = min(min_tile.y, max_tile.y)
-	var y_end = max(min_tile.y, max_tile.y)
-
-	for y in range(y_start, y_end + 1):
-		for x in range(x_start, x_end + 1):
-			tiles.append(Vector2i(x, y))
-
-	return tiles
-
 func _load_resources() -> void:
 	if ResourceLoader.exists("res://fonts/PixelifySans-Bold.ttf"):
 		font_bold = load("res://fonts/PixelifySans-Bold.ttf")

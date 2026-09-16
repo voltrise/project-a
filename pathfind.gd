@@ -81,20 +81,6 @@ func get_other_player_tiles() -> Array:
 					tiles.append(dest_tile)
 	return tiles
 
-func get_all_blocked_tiles() -> Array:
-	var tiles: Array = get_other_player_tiles()
-	if not path_map_layer:
-		return tiles
-
-	# Ambil semua tile yang diblokir oleh portal di peta sebagai obstacle
-	for portal in get_tree().get_nodes_in_group("portals"):
-		if portal != null and is_instance_valid(portal) and portal.has_method("get_blocked_tiles"):
-			var p_tiles: Array = portal.get_blocked_tiles(path_map_layer)
-			for t in p_tiles:
-				if not t in tiles:
-					tiles.append(t)
-	return tiles
-
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active_character:
 		return
@@ -118,8 +104,8 @@ func move_to(pos: Vector2) -> void:
 	if start_tile == target_tile:
 		return
 
-	# 2. Ambil semua tile yang diblokir (player lain & portal) untuk collision & path avoidance
-	var blocked_tiles: Array = get_all_blocked_tiles()
+	# 2. Ambil semua tile yang diblokir player lain untuk collision & path avoidance
+	var blocked_tiles: Array = get_other_player_tiles()
 
 	# Jika target klik tepat di tile yang terblokir atau non-walkable di Path, cari tile adjacent yang walkable terdekat
 	if not CustomAStar.is_walkable(path_map_layer, target_tile, blocked_tiles):
