@@ -1,0 +1,269 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8y1vxcoopdock"]
+
+[ext_resource type="Script" path="res://addons/live_coop/ui/coop_dock.gd" id="1_dock"]
+
+[node name="CoopDock" type="Control"]
+custom_minimum_size = Vector2(260, 360)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dock")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LIVE CO-OP"
+
+[node name="StatusBadge" type="Label" parent="VBox/Header"]
+modulate = Color(0.584314, 0.647059, 0.65098, 1)
+layout_mode = 2
+text = "○ Offline"
+
+[node name="TabContainer" type="TabContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="Session" type="MarginContainer" parent="VBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/Session"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GithubGroup" type="VBoxContainer" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="VBox/TabContainer/Session/VBox/GithubGroup"]
+layout_mode = 2
+text = "GitHub Account:"
+
+[node name="GenerateTokenBtn" type="Button" parent="VBox/TabContainer/Session/VBox/GithubGroup"]
+layout_mode = 2
+text = "Get GitHub Token / Auth ↗"
+
+[node name="TokenHBox" type="HBoxContainer" parent="VBox/TabContainer/Session/VBox/GithubGroup"]
+layout_mode = 2
+
+[node name="TokenInput" type="LineEdit" parent="VBox/TabContainer/Session/VBox/GithubGroup/TokenHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "PAT token (classic, repo)"
+secret = true
+
+[node name="ConnectBtn" type="Button" parent="VBox/TabContainer/Session/VBox/GithubGroup/TokenHBox"]
+layout_mode = 2
+text = "Connect"
+
+[node name="ProfileHBox" type="HBoxContainer" parent="VBox/TabContainer/Session/VBox/GithubGroup"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AvatarRect" type="TextureRect" parent="VBox/TabContainer/Session/VBox/GithubGroup/ProfileHBox"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UserLabel" type="Label" parent="VBox/TabContainer/Session/VBox/GithubGroup/ProfileHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "@username"
+
+[node name="DisconnectGithubBtn" type="Button" parent="VBox/TabContainer/Session/VBox/GithubGroup/ProfileHBox"]
+layout_mode = 2
+text = "Disconnect"
+
+[node name="StatusLabel" type="Label" parent="VBox/TabContainer/Session/VBox/GithubGroup"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Not connected to GitHub."
+
+[node name="HSeparator1" type="HSeparator" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="ProfileGroup" type="HBoxContainer" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/TabContainer/Session/VBox/ProfileGroup"]
+layout_mode = 2
+text = "Name:"
+
+[node name="UsernameInput" type="LineEdit" parent="VBox/TabContainer/Session/VBox/ProfileGroup"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Username"
+
+[node name="ColorPicker" type="ColorPickerButton" parent="VBox/TabContainer/Session/VBox/ProfileGroup"]
+custom_minimum_size = Vector2(32, 24)
+layout_mode = 2
+color = Color(0.203922, 0.596078, 0.858824, 1)
+
+[node name="HSeparator2" type="HSeparator" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="HostGroup" type="VBoxContainer" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/TabContainer/Session/VBox/HostGroup"]
+layout_mode = 2
+text = "Host Session:"
+
+[node name="PortSpin" type="SpinBox" parent="VBox/TabContainer/Session/VBox/HostGroup"]
+layout_mode = 2
+min_value = 1024.0
+max_value = 65535.0
+value = 7777.0
+prefix = "Port:"
+
+[node name="UPNPChk" type="CheckBox" parent="VBox/TabContainer/Session/VBox/HostGroup"]
+layout_mode = 2
+text = "Enable UPnP (Internet Port Forward)"
+
+[node name="HostBtn" type="Button" parent="VBox/TabContainer/Session/VBox/HostGroup"]
+layout_mode = 2
+text = "Start Host"
+
+[node name="HSeparator3" type="HSeparator" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="JoinGroup" type="VBoxContainer" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/TabContainer/Session/VBox/JoinGroup"]
+layout_mode = 2
+text = "Join Session:"
+
+[node name="LanQuickJoinBtn" type="Button" parent="VBox/TabContainer/Session/VBox/JoinGroup"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.9, 0.4, 1)
+text = "⚡ Found Host on LAN: Quick Join"
+
+[node name="IPInput" type="LineEdit" parent="VBox/TabContainer/Session/VBox/JoinGroup"]
+layout_mode = 2
+placeholder_text = "Host IP (e.g. 127.0.0.1)"
+text = "127.0.0.1"
+
+[node name="PortSpin" type="SpinBox" parent="VBox/TabContainer/Session/VBox/JoinGroup"]
+layout_mode = 2
+min_value = 1024.0
+max_value = 65535.0
+value = 7777.0
+prefix = "Port:"
+
+[node name="JoinBtn" type="Button" parent="VBox/TabContainer/Session/VBox/JoinGroup"]
+layout_mode = 2
+text = "Join Host"
+
+[node name="HSeparator4" type="HSeparator" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+
+[node name="ShowViewportChk" type="CheckBox" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+button_pressed = true
+text = "Show 2D Peer Viewports"
+
+[node name="ShowMouseChk" type="CheckBox" parent="VBox/TabContainer/Session/VBox"]
+layout_mode = 2
+button_pressed = true
+text = "Show Collaborators Mouse"
+
+[node name="DisconnectBtn" type="Button" parent="VBox/TabContainer/Session/VBox"]
+visible = false
+layout_mode = 2
+text = "Disconnect Session"
+
+[node name="Collaborators" type="MarginContainer" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/Collaborators"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="VBox/TabContainer/Collaborators/VBox"]
+layout_mode = 2
+
+[node name="CountLabel" type="Label" parent="VBox/TabContainer/Collaborators/VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.611765, 0.643137, 1)
+theme_override_font_sizes/font_size = 12
+text = "ONLINE — 0"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/TabContainer/Collaborators/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PeerList" type="VBoxContainer" parent="VBox/TabContainer/Collaborators/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="Chat" type="MarginContainer" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/Chat"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ChatScroll" type="ScrollContainer" parent="VBox/TabContainer/Chat/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ChatMessageList" type="VBoxContainer" parent="VBox/TabContainer/Chat/VBox/ChatScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="InputPanel" type="PanelContainer" parent="VBox/TabContainer/Chat/VBox"]
+layout_mode = 2
+
+[node name="InputHBox" type="HBoxContainer" parent="VBox/TabContainer/Chat/VBox/InputPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ChatInput" type="LineEdit" parent="VBox/TabContainer/Chat/VBox/InputPanel/InputHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Message collaborators..."
+flat = true
+
+[node name="SendBtn" type="Button" parent="VBox/TabContainer/Chat/VBox/InputPanel/InputHBox"]
+layout_mode = 2
+text = "Send"
+
