@@ -1,0 +1,46 @@
+{
+	"dev": {
+		"disable_real_time_file_sync": false,
+		"disable_real_time_node_sync": false,
+		"restart_broadcast": false,
+		"run_tests_on_start": false
+	},
+	"format_version": 1.0,
+	"last_port": 5017.0,
+	"last_server": "",
+	"notifications": {
+		"users": true
+	},
+	"security": {
+		"sanitize_tool_scripts": true
+	},
+	"seen": {
+		"disclaimer": true
+	},
+	"server": {
+		"allow_external_connections": true,
+		"blacklist": [],
+		"max_users": 10.0,
+		"password": "",
+		"port": 5017.0,
+		"require_approval": false,
+		"whitelist": [
+			"127.0.0.1",
+			"0.0.0.0",
+			"0:0:0:0:0:0:0:1"
+		],
+		"whitelist_enabled": false
+	},
+	"sync": {
+		"node_refresh_rate": 0.5
+	},
+	"update": {
+		"auto_check_enabled": true,
+		"check_interval_hours": 168.0,
+		"download_signature": "",
+		"download_url": "",
+		"last_check": 1790318358.96,
+		"latest_version": "1.0-alpha"
+	},
+	"username": "Cool person"
+}

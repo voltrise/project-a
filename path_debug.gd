@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var obstacle_map_layer: TileMapLayer = $"../Obstacles" if has_node("../Obstacles") else ($"../Ground" if has_node("../Ground") else ($"../Path" if has_node("../Path") else null))
+@onready var path_map_layer: TileMapLayer = $"../Path"
 
 @export var step_delay: float = 0.5
 
@@ -835,18 +835,18 @@ func reset_ucs_animation() -> void:
 # DRAWING HELPERS
 # =========================================
 func _get_tile_center(cell: Vector2i) -> Vector2:
-	var local_pos: Vector2 = obstacle_map_layer.map_to_local(cell)
-	var global_pos: Vector2 = obstacle_map_layer.to_global(local_pos)
+	var local_pos: Vector2 = path_map_layer.map_to_local(cell)
+	var global_pos: Vector2 = path_map_layer.to_global(local_pos)
 	return to_local(global_pos)
 
 func _get_tile_size() -> Vector2:
-	if obstacle_map_layer and obstacle_map_layer.tile_set:
-		var tile_size: Vector2i = obstacle_map_layer.tile_set.tile_size
+	if path_map_layer and path_map_layer.tile_set:
+		var tile_size: Vector2i = path_map_layer.tile_set.tile_size
 		return Vector2(tile_size.x, tile_size.y)
 	return Vector2(64, 64)
 
 func _draw() -> void:
-	if obstacle_map_layer == null:
+	if path_map_layer == null:
 		return
 
 	var tile_size := _get_tile_size()
