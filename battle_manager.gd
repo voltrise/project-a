@@ -9,12 +9,12 @@ extends Node
 ##
 ## Dipanggil dari lobby/map, data diambil oleh BattleStage saat _ready().
 
-# ── Signals ───────────────────────────────────────────────────────────
+# â”€â”€ Signals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 signal battle_started(player_data: Dictionary, enemy_data: Dictionary)
 signal battle_ended(result: Dictionary)
 
-# ── Battle setup data (persist across scene change) ───────────────────
+# â”€â”€ Battle setup data (persist across scene change) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 var _player_fighter: Dictionary = {}
 var _enemy_fighter: Dictionary = {}
@@ -22,10 +22,10 @@ var _battle_active: bool = false
 var _return_scene: String = ""
 var _battle_result: Dictionary = {}
 
-## AI search depth — bisa di-tweak per difficulty
+## AI search depth â€” bisa di-tweak per difficulty
 var ai_search_depth: int = 4
 
-# ── Contoh enemy presets ──────────────────────────────────────────────
+# â”€â”€ Contoh enemy presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ## Karena enemy belum ada di game, ini sebagai placeholder.
 ## Nanti bisa diganti dengan enemies.json atau enemy spawner.
 
@@ -63,9 +63,9 @@ const ENEMY_PRESETS: Dictionary = {
 }
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  BATTLE LIFECYCLE
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 ## Mulai battle. Dipanggil dari lobby/overworld.
 ## player_char_data: data karakter dari CharacterManager (punya "name", "tier", dll)
@@ -114,7 +114,16 @@ func start_battle(caller: Node, player_char_data: Dictionary, enemy_data: Dictio
 		_enemy_fighter["name"], _enemy_fighter["tier"],
 	])
 
-	caller.get_tree().change_scene_to_file("res://battlestage.tscn")
+	var battle_scene_path: String = "res://Temp_Battle/Battle.tscn"
+	if not ResourceLoader.exists(battle_scene_path):
+		if ResourceLoader.exists("res://temp/Battle.tscn"):
+			battle_scene_path = "res://temp/Battle.tscn"
+		elif ResourceLoader.exists("res://battlestage.tscn"):
+			battle_scene_path = "res://battlestage.tscn"
+
+	var tree: SceneTree = caller.get_tree() if caller != null else get_tree()
+	if tree:
+		tree.change_scene_to_file(battle_scene_path)
 
 
 ## Akhiri battle. Dipanggil oleh BattleStage saat ada pemenang.
@@ -133,9 +142,9 @@ func end_battle(result: Dictionary) -> void:
 		get_tree().change_scene_to_file(_return_scene)
 
 
-# ══════════════════════════════════════════════════════════════════════
-#  DATA ACCESS — dipanggil BattleStage saat _ready()
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  DATA ACCESS â€” dipanggil BattleStage saat _ready()
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 ## Return deep copy dari battle setup data.
 ## BattleStage pakai ini untuk create BattleState.
@@ -163,9 +172,9 @@ func set_ai_depth(depth: int) -> void:
 	print("[BattleManager] AI depth set to %d" % ai_search_depth)
 
 
-# ══════════════════════════════════════════════════════════════════════
-#  HELPER — quick battle start dari preset
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  HELPER â€” quick battle start dari preset
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 ## Start battle pakai enemy preset. Shortcut buat testing.
 ## Contoh: BattleManager.start_battle_preset(char_data, "goblin")

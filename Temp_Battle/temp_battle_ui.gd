@@ -9,7 +9,7 @@ signal ai_config_changed(algo: int, depth: int, eval_type: int, ordering: int)
 const StateScript = preload("res://Temp_Battle/temp_battle_state.gd")
 const AIScript = preload("res://Temp_Battle/temp_battle_ai.gd")
 
-# ── UI Elements ────────────────────────────────────────────────────────
+# â”€â”€ UI Elements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 var player_hp_bar: ProgressBar
 var player_hp_lbl: Label
 var player_stm_bar: ProgressBar
@@ -68,7 +68,7 @@ func toggle_debug_panel() -> void:
 	if debug_panel:
 		debug_panel.visible = not debug_panel.visible
 		if btn_toggle_debug:
-			btn_toggle_debug.text = "📊 Debug [%s]" % ("ON" if debug_panel.visible else "OFF")
+			btn_toggle_debug.text = "ðŸ“Š Debug [%s]" % ("ON" if debug_panel.visible else "OFF")
 
 
 func _build_ui() -> void:
@@ -77,7 +77,7 @@ func _build_ui() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	# ── 1. Top Header Bar ──────────────────────────────────────────────
+	# â”€â”€ 1. Top Header Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	var top_panel := PanelContainer.new()
 	top_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	top_panel.custom_minimum_size.y = 36
@@ -91,7 +91,7 @@ func _build_ui() -> void:
 	top_panel.add_child(top_hbox)
 
 	var title_lbl := Label.new()
-	title_lbl.text = "⚔ Battle System (Adversarial Search)"
+	title_lbl.text = "âš” Battle System (Adversarial Search)"
 	title_lbl.add_theme_font_size_override("font_size", 14)
 	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.6))
 	top_hbox.add_child(title_lbl)
@@ -101,16 +101,28 @@ func _build_ui() -> void:
 	top_hbox.add_child(spacer)
 
 	btn_toggle_debug = Button.new()
-	btn_toggle_debug.text = "📊 Debug [ON]"
+	btn_toggle_debug.text = "ðŸ“Š Debug [ON]"
 	btn_toggle_debug.pressed.connect(toggle_debug_panel)
 	top_hbox.add_child(btn_toggle_debug)
 
 	var reset_btn := Button.new()
-	reset_btn.text = "🔄 Reset"
+	reset_btn.text = "ðŸ”„ Reset"
 	reset_btn.pressed.connect(func(): reset_battle_requested.emit())
 	top_hbox.add_child(reset_btn)
 
-	# ── 2. Fighter Status Cards ────────────────────────────────────────
+	var lobby_btn := Button.new()
+	lobby_btn.text = "Lobby / Overworld"
+	lobby_btn.pressed.connect(func():
+		var return_scene: String = "res://Overworld.tscn"
+		if has_node("/root/BattleManager"):
+			var bm = get_node("/root/BattleManager")
+			if bm.get("_return_scene") and str(bm.get("_return_scene")) != "":
+				return_scene = str(bm.get("_return_scene"))
+		get_tree().change_scene_to_file(return_scene)
+	)
+	top_hbox.add_child(lobby_btn)
+
+	# â”€â”€ 2. Fighter Status Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	var status_container := HBoxContainer.new()
 	status_container.position = Vector2(20, 48)
 	status_container.size = Vector2(820, 115)
@@ -135,7 +147,7 @@ func _build_ui() -> void:
 	npc_stm_lbl = n_card["stm_lbl"]
 	npc_status_badge = n_card["status_lbl"]
 
-	# ── 3. Turn Indicator Banner ───────────────────────────────────────
+	# â”€â”€ 3. Turn Indicator Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	turn_banner_label = Label.new()
 	turn_banner_label.position = Vector2(20, 172)
 	turn_banner_label.size = Vector2(820, 28)
@@ -149,7 +161,7 @@ func _build_ui() -> void:
 	turn_banner_label.add_theme_stylebox_override("normal", banner_style)
 	root.add_child(turn_banner_label)
 
-	# ── 4. Bottom Controls: Action Buttons & Log ──────────────────────
+	# â”€â”€ 4. Bottom Controls: Action Buttons & Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	var bottom_container := HBoxContainer.new()
 	bottom_container.position = Vector2(20, 520)
 	bottom_container.size = Vector2(820, 180)
@@ -184,28 +196,28 @@ func _build_ui() -> void:
 	actions_vbox.add_child(btns_grid)
 
 	btn_attack = Button.new()
-	btn_attack.text = "⚔ Attack (30 STM)"
+	btn_attack.text = "âš” Attack (30 STM)"
 	btn_attack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_attack.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	btn_attack.pressed.connect(func(): player_action_selected.emit(StateScript.Action.ATTACK))
 	btns_grid.add_child(btn_attack)
 
 	btn_heavy = Button.new()
-	btn_heavy.text = "💥 Heavy Attack (60 STM)"
+	btn_heavy.text = "ðŸ’¥ Heavy Attack (60 STM)"
 	btn_heavy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_heavy.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	btn_heavy.pressed.connect(func(): player_action_selected.emit(StateScript.Action.HEAVY_ATTACK))
 	btns_grid.add_child(btn_heavy)
 
 	btn_defend = Button.new()
-	btn_defend.text = "🛡 Defend (Guard)"
+	btn_defend.text = "ðŸ›¡ Defend (Guard)"
 	btn_defend.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_defend.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	btn_defend.pressed.connect(func(): player_action_selected.emit(StateScript.Action.DEFEND))
 	btns_grid.add_child(btn_defend)
 
 	btn_rest = Button.new()
-	btn_rest.text = "💤 Rest (+50 STM)"
+	btn_rest.text = "ðŸ’¤ Rest (+50 STM)"
 	btn_rest.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_rest.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	btn_rest.pressed.connect(func(): player_action_selected.emit(StateScript.Action.REST))
@@ -241,10 +253,10 @@ func _build_ui() -> void:
 	log_rich_text.scroll_following = true
 	scroll.add_child(log_rich_text)
 
-	# ── 5. DEBUG OVERLAY ──────────────────────────────────────────────
+	# â”€â”€ 5. DEBUG OVERLAY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	_build_debug_overlay(root)
 
-	# ── 6. Experiment Results Modal ────────────────────────────────────
+	# â”€â”€ 6. Experiment Results Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	_build_experiment_modal(root)
 
 
@@ -358,7 +370,7 @@ func _build_debug_overlay(parent: Control) -> void:
 	debug_panel.add_child(vbox)
 
 	var d_title := Label.new()
-	d_title.text = "📊 DEBUG OVERLAY"
+	d_title.text = "ðŸ“Š DEBUG OVERLAY"
 	d_title.add_theme_font_size_override("font_size", 13)
 	d_title.add_theme_color_override("font_color", Color(0.95, 0.75, 0.3))
 	vbox.add_child(d_title)
@@ -489,7 +501,7 @@ func _build_debug_overlay(parent: Control) -> void:
 
 	# Benchmark Button
 	var exp_btn := Button.new()
-	exp_btn.text = "🔬 Jalankan Benchmark AI"
+	exp_btn.text = "ðŸ”¬ Jalankan Benchmark AI"
 	exp_btn.custom_minimum_size.y = 30
 	exp_btn.pressed.connect(func(): run_experiments_requested.emit())
 	vbox.add_child(exp_btn)
@@ -527,7 +539,7 @@ func _build_experiment_modal(parent: Control) -> void:
 	header_hbox.add_child(sp)
 
 	var close_btn := Button.new()
-	close_btn.text = "✖ Tutup"
+	close_btn.text = "âœ– Tutup"
 	close_btn.pressed.connect(func(): experiment_modal.visible = false)
 	header_hbox.add_child(close_btn)
 
@@ -553,9 +565,9 @@ func _on_config_changed() -> void:
 	)
 
 
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  UPDATE UI DISPLAY
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 func update_state_display(state: StateScript) -> void:
 	var p = state.player
@@ -671,7 +683,7 @@ func update_ai_debug(decision: Dictionary) -> void:
 
 		if is_best:
 			var best_badge := Label.new()
-			best_badge.text = " ★"
+			best_badge.text = " â˜…"
 			best_badge.add_theme_font_size_override("font_size", 11)
 			best_badge.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 			row.add_child(best_badge)
@@ -687,7 +699,7 @@ func append_battle_log(text: String, color: Color = Color.WHITE) -> void:
 
 func display_experiment_results(results: Dictionary) -> void:
 	var bb := ""
-	bb += "[b][color=#f4d03f]═══ EKSPERIMEN 1: MINIMAX vs ALPHA-BETA vs MOVE ORDERING ═══[/color][/b]
+	bb += "[b][color=#f4d03f]â•â•â• EKSPERIMEN 1: MINIMAX vs ALPHA-BETA vs MOVE ORDERING â•â•â•[/color][/b]
 "
 	bb += "[table=6]"
 	bb += "[cell][b]Depth[/b][/cell][cell][b]Minimax[/b][/cell][cell][b]Alpha-Beta[/b][/cell][cell][b]Cutoffs[/b][/cell][cell][b]AB + Order[/b][/cell][cell][b]Match?[/b][/cell]"
@@ -703,7 +715,7 @@ func display_experiment_results(results: Dictionary) -> void:
 
 "
 
-	bb += "[b][color=#f4d03f]═══ EKSPERIMEN 2: FUNGSI EVALUASI (DEPTH 4) ═══[/color][/b]
+	bb += "[b][color=#f4d03f]â•â•â• EKSPERIMEN 2: FUNGSI EVALUASI (DEPTH 4) â•â•â•[/color][/b]
 "
 	bb += "[table=4]"
 	bb += "[cell][b]Fungsi[/b][/cell][cell][b]Aksi Dipilih[/b][/cell][cell][b]Skor[/b][/cell][cell][b]Nodes[/b][/cell]"
@@ -716,7 +728,7 @@ func display_experiment_results(results: Dictionary) -> void:
 
 "
 
-	bb += "[b][color=#f4d03f]═══ EKSPERIMEN 3: MOVE ORDERING (DEPTH 4) ═══[/color][/b]
+	bb += "[b][color=#f4d03f]â•â•â• EKSPERIMEN 3: MOVE ORDERING (DEPTH 4) â•â•â•[/color][/b]
 "
 	bb += "[table=4]"
 	bb += "[cell][b]Mode Urutan[/b][/cell][cell][b]Aksi[/b][/cell][cell][b]Nodes[/b][/cell][cell][b]Cutoffs[/b][/cell]"

@@ -1,15 +1,35 @@
-extends Node
+﻿extends Node
+
+## Map Lobby / Overworld Controller
+## Menjaga inisialisasi world dan memastikan portal prompt aktif di koordinat portal tile.
+
+const PORTAL_POSITION := Vector2(2917.0, 1251.0)
 
 var BM = BattleManagerClass.new()
 var CMC = CharacterManagerClass.new()
-# Called when the node enters the scene tree for the first time.
+
 func _ready() -> void:
-	#get_tree().change_scene_to_file("res://battlestage.tscn")
-	var bocchi = CMC.get_character_by_id("bocchi")
-	#BM.start_battle(self, bocchi, BattleManagerClass.ENEMY_PRESETS.skeleton_knight, "res://Overworld.tscn")
-	pass # Replace with function body.
+	_ensure_portal_prompt()
 
+func _ensure_portal_prompt() -> void:
+	if has_node("PortalPrompt"):
+		return
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+	var portal_scene = load("res://portal_prompt.tscn")
+	if portal_scene:
+		var portal_node = portal_scene.instantiate()
+		portal_node.position = PORTAL_POSITION
+		add_child(portal_node)
+		print("[MapLobby] PortalPrompt attached at ", PORTAL_POSITION)
+	else:
+		var portal_script = load("res://portal_prompt.gd")
+		if portal_script:
+			var portal_node = Area2D.new()
+			portal_node.name = "PortalPrompt"
+			portal_node.set_script(portal_script)
+			portal_node.position = PORTAL_POSITION
+			add_child(portal_node)
+			print("[MapLobby] PortalPrompt fallback created at ", PORTAL_POSITION)
+
 func _process(delta: float) -> void:
 	pass

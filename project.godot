@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 [autoload]
 
 CharacterManager="*res://character_manager.gd"
+BattleManager="*res://battle_manager.gd"
 
 [display]
 
