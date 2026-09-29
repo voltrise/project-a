@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cey8o20x773rk"]
 
-[ext_resource type="Script" uid="uid://dgx1rcopnmwqq" path="res://character_hud.gd" id="1_hud_script"]
+[ext_resource type="Script" path="res://scripts/battle/character_hud.gd" id="1_hud_script"]
 [ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_font_bold"]
 [ext_resource type="FontFile" uid="uid://1n2yub6iqhs" path="res://fonts/PixelifySans-Medium.ttf" id="3_font_medium"]
 [ext_resource type="FontFile" uid="uid://b1578c8jkf6qp" path="res://fonts/PixelifySans-Regular.ttf" id="4_font_regular"]

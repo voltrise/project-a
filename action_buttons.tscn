@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c6j2k4m8q1v9b"]
 
-[ext_resource type="Script" path="res://action_buttons.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/action_buttons.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://dqeh277p4s145" path="res://ui/BattleStage/Action Button/Attack Btn.png" id="1_attack"]
 [ext_resource type="Texture2D" uid="uid://cv3kw4ny03ac0" path="res://ui/BattleStage/Action Button/Special Btn.png" id="2_special"]
 [ext_resource type="Texture2D" uid="uid://dp3aor8xbv7kx" path="res://ui/BattleStage/Action Button/Defense Btn.png" id="3_defense"]
