@@ -50,7 +50,7 @@ func _setup_button(btn: TextureButton, action_name: String, click_sfx: AudioStre
 # ── Hover & Press Base Handling ────────────────────────────────────────
 
 func _on_button_hover(btn: TextureButton) -> void:
-	if _is_animating_click.get(btn, false):
+	if btn.disabled or _is_animating_click.get(btn, false):
 		return
 	_play_sfx(SFX_HOVER, randf_range(0.98, 1.05))
 	btn.z_index = 10
@@ -64,7 +64,7 @@ func _on_button_hover(btn: TextureButton) -> void:
 	_tweens[btn] = tw
 
 func _on_button_unhover(btn: TextureButton) -> void:
-	if _is_animating_click.get(btn, false):
+	if btn.disabled or _is_animating_click.get(btn, false):
 		return
 	var base_pos: Vector2 = _base_positions.get(btn, btn.position)
 
@@ -81,7 +81,7 @@ func _on_button_unhover(btn: TextureButton) -> void:
 	_tweens[btn] = tw
 
 func _on_button_down(btn: TextureButton) -> void:
-	if _is_animating_click.get(btn, false):
+	if btn.disabled or _is_animating_click.get(btn, false):
 		return
 	var base_pos: Vector2 = _base_positions.get(btn, btn.position)
 
@@ -93,12 +93,35 @@ func _on_button_down(btn: TextureButton) -> void:
 	_tweens[btn] = tw
 
 func _on_button_up(btn: TextureButton) -> void:
-	if _is_animating_click.get(btn, false):
+	if btn.disabled or _is_animating_click.get(btn, false):
 		return
 	if btn.is_hovered():
 		_on_button_hover(btn)
 	else:
 		_on_button_unhover(btn)
+
+func set_button_disabled(action_name: String, disabled: bool) -> void:
+	var btn: TextureButton = null
+	match action_name:
+		"attack": btn = btn_attack
+		"special": btn = btn_special
+		"defense": btn = btn_defense
+		"item": btn = btn_item
+	if btn:
+		btn.disabled = disabled
+		_kill_tween(btn)
+		var tw = create_tween()
+		var target_col = Color(0.45, 0.45, 0.45, 0.5) if disabled else Color.WHITE
+		tw.tween_property(btn, "modulate", target_col, 0.15)
+
+func set_all_disabled(disabled: bool) -> void:
+	for b in [btn_attack, btn_special, btn_defense, btn_item]:
+		if b:
+			b.disabled = disabled
+			_kill_tween(b)
+			var tw = create_tween()
+			var target_col = Color(0.45, 0.45, 0.45, 0.5) if disabled else Color.WHITE
+			tw.tween_property(b, "modulate", target_col, 0.15)
 
 # ══════════════════════════════════════════════════════════════════════
 #  SUPER JUICY & UNIQUE PER-ACTION CLICK ANIMATIONS

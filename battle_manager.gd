@@ -74,11 +74,15 @@ const ENEMY_PRESETS: Dictionary = {
 func start_battle(caller: Node, player_char_data: Dictionary, enemy_data: Dictionary,
 		return_scene_path: String = "") -> void:
 
-	# Buat fighter dari tier karakter yang sudah di-roll
+	# Buat fighter dari tier karakter yang sudah di-roll (stats seragam seperti Temp_Battle: 100 HP & 100 Stamina)
 	var player_tier: String = player_char_data.get("tier", "Common")
 	_player_fighter = BattleState.create_fighter(
 		player_char_data.get("name", "Player"), player_tier
 	)
+	_player_fighter["hp"] = 100
+	_player_fighter["max_hp"] = 100
+	_player_fighter["stamina"] = 100
+	_player_fighter["max_stamina"] = 100
 	# Simpan visual data juga (buat UI battle nanti)
 	_player_fighter["image"] = player_char_data.get("image", "")
 	_player_fighter["id"] = player_char_data.get("id", "")
@@ -86,29 +90,21 @@ func start_battle(caller: Node, player_char_data: Dictionary, enemy_data: Dictio
 		if player_char_data.has(k):
 			_player_fighter[k] = player_char_data[k]
 
-	# Buat enemy fighter
-	if enemy_data.has("hp") and enemy_data.has("atk"):
-		# Custom stats langsung
-		_enemy_fighter = BattleState.create_fighter_custom(
-			enemy_data.get("name", "Enemy"),
-			enemy_data.get("hp", 100),
-			enemy_data.get("atk", 15),
-			enemy_data.get("def", 7),
-			enemy_data.get("spd", 10),
-			enemy_data.get("items", 2),
-			enemy_data.get("special_charges", 3),
-		)
-	else:
-		# Dari tier
-		_enemy_fighter = BattleState.create_fighter(
-			enemy_data.get("name", "Enemy"),
-			enemy_data.get("tier", "Common")
-		)
+	# Buat enemy fighter (stats seragam sama persis: 100 HP & 100 Stamina)
+	var enemy_tier: String = enemy_data.get("tier", "Common")
+	_enemy_fighter = BattleState.create_fighter(
+		enemy_data.get("name", "Enemy"),
+		enemy_tier
+	)
+	_enemy_fighter["hp"] = 100
+	_enemy_fighter["max_hp"] = 100
+	_enemy_fighter["stamina"] = 100
+	_enemy_fighter["max_stamina"] = 100
 	_enemy_fighter["image"] = enemy_data.get("image", "")
 	_enemy_fighter["id"] = enemy_data.get("id", "enemy")
 
 	_battle_active = true
-	_return_scene = return_scene_path
+	_return_scene = return_scene_path if return_scene_path != "" else "res://Overworld.tscn"
 	_battle_result = {}
 
 	battle_started.emit(_player_fighter, _enemy_fighter)
@@ -124,14 +120,19 @@ func start_battle(caller: Node, player_char_data: Dictionary, enemy_data: Dictio
 		elif ResourceLoader.exists("res://battlestage.tscn"):
 			battle_scene_path = "res://battlestage.tscn"
 
-	var tree: SceneTree = caller.get_tree() if caller != null else get_tree()
+	var tree: SceneTree = caller.get_tree() if (caller != null and caller.is_inside_tree()) else get_tree()
+	if tree == null:
+		tree = Engine.get_main_loop() as SceneTree
 	if tree:
 		tree.change_scene_to_file(battle_scene_path)
+	else:
+		push_error("[BattleManager] Fatal: Could not resolve SceneTree to transition to battle scene!")
 
 
-## Akhiri battle. Dipanggil oleh BattleStage saat ada pemenang.
+## Akhiri battle. Dipanggil oleh BattleStage saat ada pemenang atau kembali ke overworld.
 ## result: { "winner": "player"/"enemy", "turns": int, "nodes_total": int }
-func end_battle(result: Dictionary) -> void:
+## auto_change_scene: jika true, BattleManager akan langsung mengganti scene ke _return_scene.
+func end_battle(result: Dictionary, auto_change_scene: bool = false) -> void:
 	_battle_active = false
 	_battle_result = result.duplicate(true)
 
@@ -141,8 +142,12 @@ func end_battle(result: Dictionary) -> void:
 		result.get("turns", 0),
 	])
 
-	if _return_scene != "":
-		get_tree().change_scene_to_file(_return_scene)
+	if auto_change_scene and _return_scene != "":
+		var tree: SceneTree = get_tree()
+		if tree == null:
+			tree = Engine.get_main_loop() as SceneTree
+		if tree:
+			tree.change_scene_to_file(_return_scene)
 
 
 # Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â

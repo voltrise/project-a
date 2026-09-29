@@ -24,15 +24,17 @@ var turn_count: int = 0
 const DEFAULT_MAX_HP: int = 100
 const DEFAULT_MAX_STAMINA: int = 100
 
-const ATTACK_COST: int = 30
-const ATTACK_DAMAGE: int = 20
-const ATTACK_STAMINA_DMG: int = 30
+const ATTACK_COST: int = 20
+const ATTACK_DAMAGE: int = 18
+const ATTACK_STAMINA_DMG: int = 20
 
-const HEAVY_COST: int = 60
-const HEAVY_DAMAGE: int = 45
-const HEAVY_STAMINA_DMG: int = 60
+const HEAVY_COST: int = 40
+const HEAVY_DAMAGE: int = 30
+const HEAVY_STAMINA_DMG: int = 45
 
+const DEFEND_RECOVER: int = 0
 const REST_RECOVER: int = 50
+const REST_HP_RECOVER: int = 0
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -150,6 +152,7 @@ func apply_action(action: int, stochastic: bool = false) -> Dictionary:
 		"attacker_name": attacker["name"],
 		"defender_name": defender["name"],
 		"damage": 0,
+		"hp_gain": 0,
 		"stamina_damage": 0,
 		"stamina_gain": 0,
 		"blocked": false,
@@ -209,14 +212,19 @@ func apply_action(action: int, stochastic: bool = false) -> Dictionary:
 
 		Action.DEFEND:
 			attacker["is_defending"] = true
-			# Defend TIDAK memulihkan stamina (stamina_gain = 0)
-			log["stamina_gain"] = 0
+			var old_stm: int = attacker["stamina"]
+			attacker["stamina"] = min(attacker["max_stamina"], attacker["stamina"] + DEFEND_RECOVER)
+			log["stamina_gain"] = attacker["stamina"] - old_stm
 
 		Action.REST:
 			attacker["is_guard_broken"] = false
 			var old_stm: int = attacker["stamina"]
 			attacker["stamina"] = min(attacker["max_stamina"], attacker["stamina"] + REST_RECOVER)
 			log["stamina_gain"] = attacker["stamina"] - old_stm
+
+			var old_hp: int = attacker["hp"]
+			attacker["hp"] = min(attacker["max_hp"], attacker["hp"] + REST_HP_RECOVER)
+			log["hp_gain"] = attacker["hp"] - old_hp
 			log["recovered_from_break"] = true
 
 	# Ganti giliran

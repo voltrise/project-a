@@ -153,6 +153,7 @@ shader_parameter/ray_spread = 1.0
 
 [node name="Node2D" type="Node2D" unique_id=586528847]
 script = ExtResource("1_stage_script")
+metadata/_edit_vertical_guides_ = [825.0]
 
 [node name="ParallaxBackground10" type="ParallaxBackground" parent="." unique_id=1118975865]
 

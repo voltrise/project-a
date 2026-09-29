@@ -415,10 +415,13 @@ func _get_active_player_info() -> Dictionary:
 		"role": role,
 		"is_archer": is_archer,
 		"avatar": avatar_tex,
-		"hp": 95 if is_archer else 110,
-		"atk": 18 if is_archer else 15,
-		"def": 8 if is_archer else 11,
-		"spd": 14 if is_archer else 10,
+		"hp": 100,
+		"max_hp": 100,
+		"stamina": 100,
+		"max_stamina": 100,
+		"atk": 20,
+		"def": 10,
+		"spd": 10,
 	}
 
 # ══════════════════════════════════════════════════════════════════════
@@ -1000,8 +1003,8 @@ func _execute_start_battle(player_info: Dictionary, npc_data: Dictionary) -> voi
 	else:
 		enemy_data = BattleManagerClass.ENEMY_PRESETS["slime"]
 
-	var return_scene: String = ""
-	if get_tree() and get_tree().current_scene:
+	var return_scene: String = "res://Overworld.tscn"
+	if get_tree() and get_tree().current_scene and get_tree().current_scene.scene_file_path != "":
 		return_scene = get_tree().current_scene.scene_file_path
 
 	if has_node("/root/BattleManager"):

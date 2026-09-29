@@ -12,23 +12,41 @@ extends RefCounted
 enum Action { ATTACK, SPECIAL_ATTACK, USE_ITEM, DEFEND }
 enum Side { PLAYER, ENEMY }
 
-# ── Tier → base battle stats ─────────────────────────────────────────
-## Stats scale dengan rarity tier dari gacha system.
+# ── Base battle stats (Seragam untuk semua karakter sesuai Temp_Battle) ──
+## Nilai stats sama persis dengan Temp_Battle (HP = 100, Stamina = 100, ATK = 20, DEF = 10, SPD = 10).
+## Tidak ada perbedaan stat antar tier sehingga battle seimbang dan adil.
 
+const DEFAULT_STAT_HP: int = 100
+const DEFAULT_STAT_STAMINA: int = 100
+const DEFAULT_STAT_ATK: int = 20
+const DEFAULT_STAT_DEF: int = 10
+const DEFAULT_STAT_SPD: int = 10
+
+const UNIFORM_STATS: Dictionary = {
+	"hp": DEFAULT_STAT_HP,
+	"max_hp": DEFAULT_STAT_HP,
+	"stamina": DEFAULT_STAT_STAMINA,
+	"max_stamina": DEFAULT_STAT_STAMINA,
+	"atk": DEFAULT_STAT_ATK,
+	"def": DEFAULT_STAT_DEF,
+	"spd": DEFAULT_STAT_SPD,
+}
+
+## Semua tier sekarang memiliki stats seragam yang sama persis seperti Temp_Battle
 const TIER_STATS: Dictionary = {
-	"Common":    {"hp": 80,  "atk": 12, "def": 5,  "spd": 8},
-	"Uncommon":  {"hp": 100, "atk": 15, "def": 7,  "spd": 10},
-	"Rare":      {"hp": 120, "atk": 18, "def": 9,  "spd": 12},
-	"Epic":      {"hp": 150, "atk": 22, "def": 12, "spd": 15},
-	"Legendary": {"hp": 180, "atk": 26, "def": 15, "spd": 18},
-	"Mythic":    {"hp": 220, "atk": 32, "def": 18, "spd": 22},
-	"Secret":    {"hp": 250, "atk": 36, "def": 20, "spd": 25},
+	"Common":    UNIFORM_STATS,
+	"Uncommon":  UNIFORM_STATS,
+	"Rare":      UNIFORM_STATS,
+	"Epic":      UNIFORM_STATS,
+	"Legendary": UNIFORM_STATS,
+	"Mythic":    UNIFORM_STATS,
+	"Secret":    UNIFORM_STATS,
 }
 
 # ── State fields ─────────────────────────────────────────────────────
 ## Fighter data disimpan sebagai Dictionary supaya clone murah (duplicate).
 ## Struktur fighter dict:
-##   name, tier, hp, max_hp, atk, def, base_def, spd,
+##   name, tier, hp, max_hp, stamina, max_stamina, atk, def, base_def, spd,
 ##   items, max_items, special_charges, max_special, is_defending
 
 var player: Dictionary = {}
@@ -37,33 +55,36 @@ var current_turn: int = Side.PLAYER
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  FACTORY — buat fighter dari tier atau custom stats
+#  FACTORY — buat fighter dengan stats seragam Temp_Battle
 # ══════════════════════════════════════════════════════════════════════
 
-static func create_fighter(char_name: String, tier: String,
+static func create_fighter(char_name: String, tier: String = "Common",
 		items: int = 2, specials: int = 3) -> Dictionary:
-	var base: Dictionary = TIER_STATS.get(tier, TIER_STATS["Common"])
 	return {
 		"name": char_name, "tier": tier,
-		"hp": base["hp"], "max_hp": base["hp"],
-		"atk": base["atk"], "def": base["def"], "spd": base["spd"],
-		"base_def": base["def"],
+		"hp": DEFAULT_STAT_HP, "max_hp": DEFAULT_STAT_HP,
+		"stamina": DEFAULT_STAT_STAMINA, "max_stamina": DEFAULT_STAT_STAMINA,
+		"atk": DEFAULT_STAT_ATK, "def": DEFAULT_STAT_DEF, "spd": DEFAULT_STAT_SPD,
+		"base_def": DEFAULT_STAT_DEF,
 		"items": items, "max_items": items,
 		"special_charges": specials, "max_special": specials,
 		"is_defending": false,
+		"is_guard_broken": false,
 	}
 
 
-static func create_fighter_custom(char_name: String, hp: int, atk: int,
-		def_val: int, spd: int, items: int = 2, specials: int = 3) -> Dictionary:
+static func create_fighter_custom(char_name: String, _hp: int = DEFAULT_STAT_HP, _atk: int = DEFAULT_STAT_ATK,
+		_def_val: int = DEFAULT_STAT_DEF, _spd: int = DEFAULT_STAT_SPD, items: int = 2, specials: int = 3) -> Dictionary:
 	return {
 		"name": char_name, "tier": "Custom",
-		"hp": hp, "max_hp": hp,
-		"atk": atk, "def": def_val, "spd": spd,
-		"base_def": def_val,
+		"hp": DEFAULT_STAT_HP, "max_hp": DEFAULT_STAT_HP,
+		"stamina": DEFAULT_STAT_STAMINA, "max_stamina": DEFAULT_STAT_STAMINA,
+		"atk": DEFAULT_STAT_ATK, "def": DEFAULT_STAT_DEF, "spd": DEFAULT_STAT_SPD,
+		"base_def": DEFAULT_STAT_DEF,
 		"items": items, "max_items": items,
 		"special_charges": specials, "max_special": specials,
 		"is_defending": false,
+		"is_guard_broken": false,
 	}
 
 
