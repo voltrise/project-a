@@ -265,8 +265,8 @@ func _setup_now_playing() -> void:
 		return
 	np_ui.modulate.a = 0.0
 	var tw = create_tween()
-	tw.tween_interval(1.0)
-	tw.tween_property(np_ui, "modulate:a", 1.0, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(1.5)
+	tw.tween_property(np_ui, "modulate:a", 1.0, 0.7).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(3.5)
 	tw.tween_property(np_ui, "modulate:a", 0.0, 1.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func(): np_ui.visible = false)
