@@ -1,0 +1,201 @@
+[gd_scene format=3 uid="uid://cl0fe7spoko5y"]
+
+[ext_resource type="Script" uid="uid://dgx1rcopnmwqq" path="res://character_hud.gd" id="1_hud_script"]
+[ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" uid="uid://1n2yub6iqhs" path="res://fonts/PixelifySans-Medium.ttf" id="3_font_medium"]
+[ext_resource type="FontFile" uid="uid://b1578c8jkf6qp" path="res://fonts/PixelifySans-Regular.ttf" id="4_font_regular"]
+[ext_resource type="Texture2D" uid="uid://cxnnj3acgjukk" path="res://ui/stamina.png.png" id="5_tex_stamina"]
+[ext_resource type="Texture2D" uid="uid://drerl2wnpy6h3" path="res://ui/heart.png.png" id="6_tex_heart"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_capsule_stamina"]
+content_margin_left = 4.0
+content_margin_top = 2.0
+content_margin_right = 4.0
+content_margin_bottom = 2.0
+bg_color = Color(4.524645, 3.609068, 1.8483434, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_empty"]
+bg_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_stamina"]
+bg_color = Color(0.960784, 0.619608, 0.0784314, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_capsule_hp"]
+content_margin_left = 4.0
+content_margin_top = 2.0
+content_margin_right = 4.0
+content_margin_bottom = 2.0
+bg_color = Color(18.892157, 18.892157, 18.892157, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_hp"]
+bg_color = Color(0.92549, 0.282353, 0.282353, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 2
+
+[node name="CharacterHUD" type="Node2D" unique_id=906451519]
+z_index = 50
+script = ExtResource("1_hud_script")
+
+[node name="Nametag" type="Control" parent="." unique_id=1813342403]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -100.0
+offset_top = -175.0
+offset_right = 100.0
+offset_bottom = -135.0
+
+[node name="NameLabel" type="Label" parent="Nametag" unique_id=518712519]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 26.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 20
+text = "ALLIES"
+horizontal_alignment = 1
+
+[node name="Pointer" type="Polygon2D" parent="Nametag" unique_id=838026473]
+position = Vector2(100, 27)
+color = Color(0.282353, 0.784314, 0.980392, 1)
+polygon = PackedVector2Array(-5, 0, 5, 0, 0, 6)
+
+[node name="Bars" type="VBoxContainer" parent="." unique_id=1882845993]
+offset_left = -135.0
+offset_top = 48.0
+offset_right = 135.0
+offset_bottom = 96.0
+theme_override_constants/separation = 4
+
+[node name="StaminaRow" type="HBoxContainer" parent="Bars" unique_id=1141489329]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StaminaLabel" type="Label" parent="Bars/StaminaRow" unique_id=1008732826]
+custom_minimum_size = Vector2(58, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("3_font_medium")
+theme_override_font_sizes/font_size = 14
+text = "Stamina"
+horizontal_alignment = 2
+
+[node name="BarContainer" type="PanelContainer" parent="Bars/StaminaRow" unique_id=11296433]
+custom_minimum_size = Vector2(110, 16)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_capsule_stamina")
+
+[node name="HBox" type="HBoxContainer" parent="Bars/StaminaRow/BarContainer" unique_id=25974274]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Bars/StaminaRow/BarContainer/HBox" unique_id=536519127]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_tex_stamina")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StaminaBar" type="ProgressBar" parent="Bars/StaminaRow/BarContainer/HBox" unique_id=249303277]
+custom_minimum_size = Vector2(85, 9)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_empty")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fill_stamina")
+value = 100.0
+show_percentage = false
+
+[node name="StaminaValue" type="Label" parent="Bars/StaminaRow" unique_id=1431370607]
+custom_minimum_size = Vector2(62, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("4_font_regular")
+theme_override_font_sizes/font_size = 12
+text = "100/100"
+
+[node name="HPRow" type="HBoxContainer" parent="Bars" unique_id=1131528258]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HPLabel" type="Label" parent="Bars/HPRow" unique_id=375165060]
+custom_minimum_size = Vector2(58, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("3_font_medium")
+theme_override_font_sizes/font_size = 14
+text = "HP"
+horizontal_alignment = 2
+
+[node name="BarContainer" type="PanelContainer" parent="Bars/HPRow" unique_id=157437013]
+custom_minimum_size = Vector2(110, 16)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_capsule_hp")
+
+[node name="HBox" type="HBoxContainer" parent="Bars/HPRow/BarContainer" unique_id=2011925743]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Bars/HPRow/BarContainer/HBox" unique_id=1653758799]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("6_tex_heart")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HPBar" type="ProgressBar" parent="Bars/HPRow/BarContainer/HBox" unique_id=766888488]
+custom_minimum_size = Vector2(85, 9)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_empty")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fill_hp")
+value = 100.0
+show_percentage = false
+
+[node name="HPValue" type="Label" parent="Bars/HPRow" unique_id=70536824]
+custom_minimum_size = Vector2(62, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("4_font_regular")
+theme_override_font_sizes/font_size = 12
+text = "100/100"

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dikj78rhp6m70"
+path="res://.godot/imported/Song That Might Play When You Fight Sans.mp3-ff717beed4d2a784d30e47ea1a3a6bfc.mp3str"
+
+[deps]
+
+source_file="res://audio/bgm/Song That Might Play When You Fight Sans.mp3"
+dest_files=["res://.godot/imported/Song That Might Play When You Fight Sans.mp3-ff717beed4d2a784d30e47ea1a3a6bfc.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -984,13 +984,14 @@ func _execute_start_battle(player_info: Dictionary, npc_data: Dictionary) -> voi
 	])
 
 	var player_fighter_data: Dictionary = {
-		"name": "%s & %s" % [player_info.name, npc_data.get("name", "Companion")],
+		"name": npc_data.get("name", "Companion"),
 		"tier": npc_data.get("tier", "Common"),
 		"image": npc_data.get("image", ""),
 		"id": npc_data.get("id", "team"),
 		"leader": player_info.name,
 		"companion": npc_data.get("name", "Companion"),
-		"role": player_info.role
+		"role": player_info.role,
+		"avatar": "res://ui/avatar_archer.png" if player_info.name.to_lower().contains("archer") else "res://ui/avatar_pawn.png"
 	}
 
 	var enemy_data: Dictionary = {}

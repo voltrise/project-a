@@ -1,0 +1,389 @@
+[gd_scene format=4 uid="uid://cy5vtduqolbt5"]
+
+[ext_resource type="Texture2D" uid="uid://wg4v4rn5soie" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/00.png" id="1_2ns5f"]
+[ext_resource type="Script" uid="uid://dlitg6gdp7dvn" path="res://battle_stage_new.gd" id="1_stage_script"]
+[ext_resource type="Texture2D" uid="uid://cxtde03v875ve" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/1.png" id="2_nkh5c"]
+[ext_resource type="Texture2D" uid="uid://dxxlv2j20b3nj" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/2.png" id="3_tpu8o"]
+[ext_resource type="Texture2D" uid="uid://byjm5c4kws4hc" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/3.png" id="4_ry3hg"]
+[ext_resource type="Texture2D" uid="uid://q060gn8n6q2h" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/4.png" id="5_pgdhm"]
+[ext_resource type="Texture2D" uid="uid://cg1qct57ne4mq" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/5.png" id="6_lycwk"]
+[ext_resource type="Texture2D" uid="uid://ddt3k2vg2m3rn" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/6.png" id="7_o1ntt"]
+[ext_resource type="Texture2D" uid="uid://bw7jw6su27t0g" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/7ForeGround.png" id="8_m54pf"]
+[ext_resource type="Texture2D" uid="uid://3h4btidow8ny" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/BlueLight.png" id="9_btmkl"]
+[ext_resource type="Texture2D" uid="uid://chv1fuh1rwegx" path="res://assets/Cave Theme/long-platforms.png" id="11_tpu8o"]
+[ext_resource type="Texture2D" uid="uid://bw1qnpg4r6eat" path="res://assets/Cave Theme/tailes.png" id="12_ry3hg"]
+[ext_resource type="PackedScene" uid="uid://c6j2k4m8q1wab" path="res://action_buttons.tscn" id="13_buttons"]
+[ext_resource type="Texture2D" uid="uid://bnywaxakxlico" path="res://characters/enemy/FallenOrder-SeveredFang/SpriteSheet/SeveredFangIdle001-Sheet.png" id="14_fang"]
+[ext_resource type="Texture2D" uid="uid://16dgprs8gmil" path="res://characters/bocchi.png" id="15_bocchi"]
+[ext_resource type="Shader" uid="uid://vcq7rui0vyji" path="res://shaders/sunrays.gdshader" id="16_sunrays_shader"]
+[ext_resource type="PackedScene" uid="uid://cl0fe7spoko5y" path="res://character_hud.tscn" id="17_hud"]
+[ext_resource type="Texture2D" uid="uid://bs5cyv273mve0" path="res://ui/avatar_pawn.png" id="18_avatar_pawn"]
+[ext_resource type="PackedScene" uid="uid://cey8o20x773rk" path="res://enemy_hud.tscn" id="19_enemy_hud"]
+[ext_resource type="AudioStream" uid="uid://dikj78rhp6m70" path="res://audio/bgm/Song That Might Play When You Fight Sans.mp3" id="20_bgm_sans"]
+[ext_resource type="FontFile" uid="uid://1n2yub6iqhs" path="res://fonts/PixelifySans-Medium.ttf" id="21_font_pixel_med"]
+[ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="22_font_pixel_bold"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ry3hg"]
+texture = ExtResource("11_tpu8o")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+1:2/0 = 0
+6:2/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+1:4/0 = 0
+6:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+5:6/0 = 0
+6:6/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_uit2w"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_ry3hg")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pgdhm"]
+texture = ExtResource("12_ry3hg")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_aguqt"]
+tile_size = Vector2i(128, 128)
+sources/1 = SubResource("TileSetAtlasSource_pgdhm")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fang_0"]
+atlas = ExtResource("14_fang")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fang_1"]
+atlas = ExtResource("14_fang")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fang_2"]
+atlas = ExtResource("14_fang")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fang_3"]
+atlas = ExtResource("14_fang")
+region = Rect2(384, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fang_4"]
+atlas = ExtResource("14_fang")
+region = Rect2(512, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fang_5"]
+atlas = ExtResource("14_fang")
+region = Rect2(640, 0, 128, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fang"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fang_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fang_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fang_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fang_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fang_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fang_5")
+}],
+"loop": 1,
+"name": &"Idle",
+"speed": 8.0
+}]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sunrays"]
+shader = ExtResource("16_sunrays_shader")
+shader_parameter/light_pos = Vector2(0.72, 0.05)
+shader_parameter/samples = 36
+shader_parameter/density = 0.85
+shader_parameter/weight = 0.06
+shader_parameter/decay = 0.96
+shader_parameter/exposure = 0.9
+shader_parameter/ray_color = Color(0.85, 0.95, 1, 0.8)
+shader_parameter/threshold = 0.5
+shader_parameter/noise_speed = 0.15
+shader_parameter/ray_spread = 1.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wcuyn"]
+
+[node name="Node2D" type="Node2D" unique_id=586528847]
+script = ExtResource("1_stage_script")
+
+[node name="ParallaxBackground10" type="ParallaxBackground" parent="." unique_id=1118975865]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground10" unique_id=1121215417]
+motion_scale = Vector2(0, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground10/ParallaxLayer" unique_id=715101573]
+texture = ExtResource("1_2ns5f")
+centered = false
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="." unique_id=1779471384]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1191281300]
+motion_scale = Vector2(0.2, 1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer" unique_id=228422705]
+texture = ExtResource("2_nkh5c")
+centered = false
+
+[node name="ParallaxBackground2" type="ParallaxBackground" parent="." unique_id=2081585322]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground2" unique_id=1287765748]
+motion_scale = Vector2(0.35, 1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground2/ParallaxLayer" unique_id=724782900]
+texture = ExtResource("3_tpu8o")
+centered = false
+
+[node name="ParallaxBackground3" type="ParallaxBackground" parent="." unique_id=984825860]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground3" unique_id=2032366117]
+motion_scale = Vector2(0.5, 1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground3/ParallaxLayer" unique_id=555767503]
+texture = ExtResource("4_ry3hg")
+centered = false
+
+[node name="ParallaxBackground4" type="ParallaxBackground" parent="." unique_id=1034445038]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground4" unique_id=2065735288]
+motion_scale = Vector2(0.65, 1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground4/ParallaxLayer" unique_id=707197000]
+texture = ExtResource("5_pgdhm")
+centered = false
+
+[node name="ParallaxBackground5" type="ParallaxBackground" parent="." unique_id=616275856]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground5" unique_id=1313179632]
+motion_scale = Vector2(0.8, 1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground5/ParallaxLayer" unique_id=1583713417]
+texture = ExtResource("6_lycwk")
+centered = false
+
+[node name="ParallaxBackground6" type="ParallaxBackground" parent="." unique_id=916604122]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground6" unique_id=1077221626]
+motion_scale = Vector2(0, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground6/ParallaxLayer" unique_id=190997182]
+texture = ExtResource("7_o1ntt")
+centered = false
+
+[node name="ParallaxBackground7" type="ParallaxBackground" parent="." unique_id=120414687]
+layer = 1
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground7" unique_id=737026878]
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground7/ParallaxLayer" unique_id=1668076951]
+texture = ExtResource("8_m54pf")
+centered = false
+
+[node name="ParallaxBackground8" type="ParallaxBackground" parent="." unique_id=667579218]
+layer = 1
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground8" unique_id=260194395]
+motion_mirroring = Vector2(1280, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground8/ParallaxLayer" unique_id=1589964361]
+texture = ExtResource("8_m54pf")
+centered = false
+
+[node name="ParallaxBackground9" type="ParallaxBackground" parent="." unique_id=227519538]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground9" unique_id=452115838]
+motion_scale = Vector2(0, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground9/ParallaxLayer" unique_id=1385709825]
+texture = ExtResource("9_btmkl")
+centered = false
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2009745622]
+anchor_mode = 0
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1728846402]
+visible = false
+tile_map_data = PackedByteArray("AAADAAcAAAABAAAAAAADAAgAAAABAAEAAAAEAAcAAAACAAAAAAAEAAgAAAACAAEAAAAFAAcAAAADAAAAAAAFAAgAAAADAAEAAAAGAAcAAAAEAAAAAAAGAAgAAAAEAAEAAAAHAAcAAAAFAAAAAAAHAAgAAAAFAAEAAAAIAAcAAAAGAAAAAAAIAAgAAAAGAAEAAAALAAcAAAABAAAAAAALAAgAAAABAAEAAAAMAAcAAAACAAAAAAAMAAgAAAACAAEAAAANAAcAAAADAAAAAAANAAgAAAADAAEAAAAOAAcAAAAEAAAAAAAOAAgAAAAEAAEAAAAPAAcAAAAFAAAAAAAPAAgAAAAFAAEAAAAQAAcAAAAGAAAAAAAQAAgAAAAGAAEAAAA=")
+tile_set = SubResource("TileSet_uit2w")
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="." unique_id=1436006362]
+tile_map_data = PackedByteArray("AAADAAUAAQABAAEAAAADAAYAAQABAAEAAAAEAAYAAQABAAEAAAAFAAUAAQABAAEAAAAEAAUAAQABAAEAAAAFAAYAAQABAAEAAAAGAAUAAQABAAEAAAAGAAYAAQABAAEAAAAEAAcAAQABAAIAAAAFAAcAAQABAAIAAAAGAAcAAQABAAIAAAADAAcAAQABAAIAAAACAAcAAQAAAAIAAAACAAYAAQAAAAEAAAACAAUAAQAAAAEAAAAHAAcAAQACAAIAAAAHAAUAAQACAAEAAAAHAAYAAQACAAEAAAACAAQAAQAAAAAAAAAHAAQAAQACAAAAAAADAAQAAQABAAAAAAAEAAQAAQABAAAAAAAFAAQAAQABAAAAAAAGAAQAAQABAAAAAAA=")
+tile_set = SubResource("TileSet_aguqt")
+
+[node name="NPCCharacter" type="Sprite2D" parent="." unique_id=499405397]
+texture_filter = 1
+position = Vector2(420, 478.67)
+scale = Vector2(3.56, 3.56)
+texture = ExtResource("15_bocchi")
+
+[node name="EnemyCharacter" type="AnimatedSprite2D" parent="." unique_id=1993131923]
+texture_filter = 1
+position = Vector2(860, 492.815)
+scale = Vector2(3.56, 3.56)
+sprite_frames = SubResource("SpriteFrames_fang")
+animation = &"Idle"
+autoplay = "Idle"
+flip_h = true
+
+[node name="AllyHUD" parent="." unique_id=741852963 instance=ExtResource("17_hud")]
+position = Vector2(420, 512)
+character_name = "BOCCHI"
+
+[node name="EnemyHUD" parent="." unique_id=963852741 instance=ExtResource("19_enemy_hud")]
+position = Vector2(860, 512)
+
+[node name="SunraysCanvas" type="CanvasLayer" parent="." unique_id=1595020884]
+layer = -1
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="SunraysCanvas" unique_id=968306664]
+copy_mode = 2
+
+[node name="SunraysRect" type="ColorRect" parent="SunraysCanvas" unique_id=1674039231]
+material = SubResource("ShaderMaterial_sunrays")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=214856595]
+layer = 10
+
+[node name="PlayerAvatarUI" type="Control" parent="CanvasLayer" unique_id=581920394]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 30.0
+offset_top = 24.0
+offset_right = 102.0
+offset_bottom = 96.0
+
+[node name="AvatarRect" type="TextureRect" parent="CanvasLayer/PlayerAvatarUI" unique_id=918273645]
+texture_filter = 1
+layout_mode = 0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 68.0
+offset_bottom = 68.0
+texture = ExtResource("18_avatar_pawn")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NowPlayingUI" type="PanelContainer" parent="CanvasLayer" unique_id=883192014]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -222.42505
+offset_top = -95.02002
+offset_right = -22.425049
+offset_bottom = -35.02002
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_wcuyn")
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/NowPlayingUI" unique_id=2083330571]
+modulate = Color(18.892157, 18.892157, 18.892157, 1)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/NowPlayingUI/VBox" unique_id=1185477972]
+layout_mode = 2
+theme_override_colors/font_color = Color(18.892157, 18.892157, 18.540012, 0.9019608)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("21_font_pixel_med")
+theme_override_font_sizes/font_size = 30
+text = "Now Playing:"
+
+[node name="TrackLabel" type="Label" parent="CanvasLayer/NowPlayingUI/VBox" unique_id=1772748573]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("22_font_pixel_bold")
+theme_override_font_sizes/font_size = 30
+text = "STMPWYFS - Toby Fox"
+
+[node name="PlayerActionButtons" parent="CanvasLayer" unique_id=763411741 instance=ExtResource("13_buttons")]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = -270.0
+offset_right = 240.0
+offset_bottom = -30.0
+grow_vertical = 0
+
+[node name="EnemyActionButtons" parent="CanvasLayer" unique_id=1823119682 instance=ExtResource("13_buttons")]
+visible = false
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -240.0
+offset_top = -270.0
+offset_right = -30.0
+offset_bottom = -30.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="BattleBGM" type="AudioStreamPlayer" parent="." unique_id=992837465]
+stream = ExtResource("20_bgm_sans")
+volume_db = -4.0
+autoplay = true
