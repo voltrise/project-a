@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d3y7x7q8x9b6o"]
 
-[ext_resource type="Script" path="res://index_ui.gd" id="1_idx"]
+[ext_resource type="Script" path="res://scripts/ui/index_ui.gd" id="1_idx"]
 
 [node name="IndexUI" type="CanvasLayer"]
 layer = 92

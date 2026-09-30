@@ -29,10 +29,10 @@ extends Node2D
 @export var camera_smoothing: float = 4.0
 
 # ══════════════════════════════════════════════════════════════════════
-#  TEMP BATTLE SCRIPTS (STATE & AI)
+#  BATTLE SCRIPTS (STATE & AI)
 # ══════════════════════════════════════════════════════════════════════
-const StateScript = preload("res://Temp_Battle/temp_battle_state.gd")
-const AIScript = preload("res://Temp_Battle/temp_battle_ai.gd")
+const StateScript = preload("res://scripts/battle/battle_state.gd")
+const AIScript = preload("res://scripts/battle/battle_ai.gd")
 
 var state: StateScript
 var ai: AIScript

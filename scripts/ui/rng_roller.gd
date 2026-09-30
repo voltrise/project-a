@@ -6,7 +6,7 @@ extends Control
 signal roll_started
 signal roll_finished(character_data, tier_data)
 
-const ReelItemScript = preload("res://reel_item.gd")
+const ReelItemScript = preload("res://scripts/ui/reel_item.gd")
 
 @export var item_spacing: float = 230.0
 @export var items_per_roll: int = 24

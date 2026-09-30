@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://cy5vtduqolbt5"]
 
 [ext_resource type="Texture2D" uid="uid://wg4v4rn5soie" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/00.png" id="1_2ns5f"]
-[ext_resource type="Script" uid="uid://dlitg6gdp7dvn" path="res://battle_stage_new.gd" id="1_stage_script"]
+[ext_resource type="Script" path="res://scripts/battle/battle_stage.gd" id="1_stage_script"]
 [ext_resource type="Texture2D" uid="uid://cxtde03v875ve" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/1.png" id="2_nkh5c"]
 [ext_resource type="Texture2D" uid="uid://dxxlv2j20b3nj" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/2.png" id="3_tpu8o"]
 [ext_resource type="Texture2D" uid="uid://byjm5c4kws4hc" path="res://assets/Cave Theme/Cave Theme/BackGround Layers/3.png" id="4_ry3hg"]

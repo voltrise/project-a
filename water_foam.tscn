@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://water_foam.gd" id="1_water_foam"]
+[ext_resource type="Script" path="res://scripts/world/water_foam.gd" id="1_water_foam"]
 
 [node name="WaterFoam" type="Node2D"]
 z_index = -1

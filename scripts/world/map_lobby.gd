@@ -1,4 +1,4 @@
-﻿extends Node
+extends Node
 
 ## Map Lobby / Overworld Controller
 ## Menjaga inisialisasi world dan memastikan portal prompt aktif di koordinat portal tile.
@@ -22,7 +22,7 @@ func _ensure_portal_prompt() -> void:
 		add_child(portal_node)
 		print("[MapLobby] PortalPrompt attached at ", PORTAL_POSITION)
 	else:
-		var portal_script = load("res://portal_prompt.gd")
+		var portal_script = load("res://scripts/world/portal_prompt.gd")
 		if portal_script:
 			var portal_node = Area2D.new()
 			portal_node.name = "PortalPrompt"

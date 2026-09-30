@@ -13,8 +13,8 @@ extends Control
 ## - Dynamic Depth Selector (1 s/d 4)
 ## - Live Node Inspector & Floating Hover Tooltip
 
-const StateScript = preload("res://Temp_Battle/temp_battle_state.gd")
-const AIScript = preload("res://Temp_Battle/temp_battle_ai.gd")
+const StateScript = preload("res://scripts/battle/battle_state.gd")
+const AIScript = preload("res://scripts/battle/battle_ai.gd")
 
 # Move Icons from Battle UI
 const ICON_ATTACK = preload("res://ui/BattleStage/Action Button/Attack Btn.png")

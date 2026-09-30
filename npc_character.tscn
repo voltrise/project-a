@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://npc_character_scene_01"]
 
-[ext_resource type="Script" path="res://npc_character.gd" id="1_npc"]
+[ext_resource type="Script" path="res://scripts/entities/npc_character.gd" id="1_npc"]
 [ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_font"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hover"]

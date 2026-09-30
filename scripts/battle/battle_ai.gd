@@ -1,7 +1,7 @@
-class_name TempBattleAI
+class_name BattleAI
 extends RefCounted
 
-const TempBattleState = preload("res://Temp_Battle/temp_battle_state.gd")
+const TempBattleState = preload("res://scripts/battle/battle_state.gd")
 
 ## Adversarial Search Engine untuk Turn-Based Duel (Tugas Besar Tahap 2).
 ##

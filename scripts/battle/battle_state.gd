@@ -1,4 +1,4 @@
-class_name TempBattleState
+class_name BattleState
 extends RefCounted
 
 ## State representasi untuk Turn-Based Adversarial Battle (1v1 Duel).
@@ -23,6 +23,58 @@ var turn_count: int = 0
 # ── Game Constants ─────────────────────────────────────────────────────
 const DEFAULT_MAX_HP: int = 100
 const DEFAULT_MAX_STAMINA: int = 100
+const DEFAULT_STAT_HP: int = 100
+const DEFAULT_STAT_STAMINA: int = 100
+const DEFAULT_STAT_ATK: int = 20
+const DEFAULT_STAT_DEF: int = 10
+const DEFAULT_STAT_SPD: int = 10
+
+const UNIFORM_STATS: Dictionary = {
+	"hp": DEFAULT_STAT_HP,
+	"max_hp": DEFAULT_STAT_HP,
+	"stamina": DEFAULT_STAT_STAMINA,
+	"max_stamina": DEFAULT_STAT_STAMINA,
+	"atk": DEFAULT_STAT_ATK,
+	"def": DEFAULT_STAT_DEF,
+	"spd": DEFAULT_STAT_SPD,
+}
+
+const TIER_STATS: Dictionary = {
+	"Common":    UNIFORM_STATS,
+	"Uncommon":  UNIFORM_STATS,
+	"Rare":      UNIFORM_STATS,
+	"Epic":      UNIFORM_STATS,
+	"Legendary": UNIFORM_STATS,
+	"Mythic":    UNIFORM_STATS,
+	"Secret":    UNIFORM_STATS,
+}
+
+static func create_fighter(char_name: String, tier: String = "Common", items: int = 2, specials: int = 3) -> Dictionary:
+	return {
+		"name": char_name, "tier": tier,
+		"hp": DEFAULT_MAX_HP, "max_hp": DEFAULT_MAX_HP,
+		"stamina": DEFAULT_MAX_STAMINA, "max_stamina": DEFAULT_MAX_STAMINA,
+		"atk": 20, "def": 10, "spd": 10,
+		"base_def": 10,
+		"items": items, "max_items": items,
+		"special_charges": specials, "max_special": specials,
+		"is_defending": false,
+		"is_guard_broken": false,
+	}
+
+static func create_fighter_custom(char_name: String, _hp: int = DEFAULT_MAX_HP, _atk: int = 20,
+		_def_val: int = 10, _spd: int = 10, items: int = 2, specials: int = 3) -> Dictionary:
+	return {
+		"name": char_name, "tier": "Custom",
+		"hp": DEFAULT_MAX_HP, "max_hp": DEFAULT_MAX_HP,
+		"stamina": DEFAULT_MAX_STAMINA, "max_stamina": DEFAULT_MAX_STAMINA,
+		"atk": 20, "def": 10, "spd": 10,
+		"base_def": 10,
+		"items": items, "max_items": items,
+		"special_charges": specials, "max_special": specials,
+		"is_defending": false,
+		"is_guard_broken": false,
+	}
 
 const ATTACK_COST: int = 20
 const ATTACK_DAMAGE: int = 18

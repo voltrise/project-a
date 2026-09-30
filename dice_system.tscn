@@ -2,10 +2,10 @@
 
 [ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_0e48y"]
 [ext_resource type="Texture2D" uid="uid://bkebhb7bg3lq0" path="res://ui/Dicepixel.png" id="2_0j2wi"]
-[ext_resource type="Script" uid="uid://boi5rg7tmpmt" path="res://dice_button.gd" id="3_70k6x"]
+[ext_resource type="Script" path="res://scripts/ui/dice_button.gd" id="3_70k6x"]
 [ext_resource type="AudioStream" uid="uid://brpv3i4audncu" path="res://audio/sfx/hover_pop.wav" id="4_hov1e"]
 [ext_resource type="AudioStream" uid="uid://bwjre4ru4naqq" path="res://audio/sfx/dice_click.wav" id="5_clk2e"]
-[ext_resource type="Script" uid="uid://dtbedudm745no" path="res://rng_roller.gd" id="6_roller"]
+[ext_resource type="Script" path="res://scripts/ui/rng_roller.gd" id="6_roller"]
 
 [sub_resource type="Gradient" id="Gradient_win"]
 offsets = PackedFloat32Array(0, 0.7, 1)

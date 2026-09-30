@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ch2q8bynf4o0c"]
 
-[ext_resource type="Script" path="res://reel_item.gd" id="1_item_script"]
+[ext_resource type="Script" path="res://scripts/ui/reel_item.gd" id="1_item_script"]
 [ext_resource type="FontFile" uid="uid://uskmnou7r48c" path="res://fonts/PixelifySans-Bold.ttf" id="2_font"]
 
 [node name="ReelItem" type="Control"]
