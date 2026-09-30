@@ -609,7 +609,7 @@ func _rebuild_tree() -> void:
 	if lbl_turn_state and source_state:
 		var turn_side_str := "Giliran Player" if source_state.current_turn == StateScript.Side.PLAYER else "Giliran NPC"
 		lbl_turn_state.text = "📍 Turn %d: %s" % [source_state.turn_count + 1, turn_side_str]
-		var col := Color(0.35, 0.95, 0.85) if source_state.current_turn == StateScript.Side.PLAYER else Color(1.0, 0.65, 0.3)
+		var col := Color(1.0, 0.65, 0.3) if source_state.current_turn == StateScript.Side.PLAYER else Color(0.35, 0.95, 0.85)
 		lbl_turn_state.add_theme_color_override("font_color", col)
 
 	tree_root = {
@@ -668,7 +668,8 @@ func _expand_tree_node(
 	stats: Dictionary
 ) -> float:
 	stats["expanded"] += 1
-	node["is_max"] = is_max
+	if node.get("depth", 0) == 0:
+		node["is_max"] = is_max
 	node["alpha"] = alpha
 	node["beta"] = beta
 
@@ -713,7 +714,7 @@ func _expand_tree_node(
 			"name": StateScript.get_action_name(act),
 			"action": act,
 			"depth": node["depth"] + 1,
-			"is_max": not is_max,
+			"is_max": is_max,
 			"score": 0.0,
 			"alpha": cur_alpha,
 			"beta": cur_beta,
@@ -1344,7 +1345,7 @@ func _draw_simplified_hover_tooltip(node: Dictionary) -> void:
 		HORIZONTAL_ALIGNMENT_LEFT,
 		int(tt_w - 60),
 		13,
-		Color(0.3, 0.95, 1.0) if is_max else Color(1.0, 0.65, 0.3)
+		Color(0.65, 0.35, 0.95) if is_root else (Color(0.3, 0.95, 1.0) if is_max else Color(1.0, 0.65, 0.3))
 	)
 
 	# Best Move Badge
@@ -1432,12 +1433,17 @@ func _update_inspector(node: Dictionary, is_pinned: bool = false) -> void:
 	var b_str: String = "+∞" if b_val == INF else "%+.1f" % b_val
 
 	var bb := ""
-	var tag_col := "#33bbee" if is_max else "#ff8833"
+	var is_root := (depth == 0)
+	var tag_col := "#a855f7" if is_root else ("#33bbee" if is_max else "#ff8833")
 	var type_name := "MAX (AI/Enemy)" if is_max else "MIN (Player)"
-	bb += "[b][color=%s]Depth %d • %s — Aksi: %s[/color][/b]" % [tag_col, depth, type_name, act_name]
-	if is_best:
-		bb += " [color=#f4d03f]★ BEST MOVE[/color]"
-	bb += "\n"
+	if is_root:
+		var root_role := "ROOT (Giliran AI / MAX)" if is_max else "ROOT (Giliran Player / MIN)"
+		bb += "[b][color=%s]Depth 0 • %s[/color][/b]\n" % [tag_col, root_role]
+	else:
+		bb += "[b][color=%s]Depth %d • %s — Aksi: %s[/color][/b]" % [tag_col, depth, type_name, act_name]
+		if is_best:
+			bb += " [color=#f4d03f]★ BEST MOVE[/color]"
+		bb += "\n"
 
 	bb += "[color=#dddddd]State:[/color] AI HP [color=#ff7766]%d[/color], STM [color=#55ccff]%d[/color]  |  Player HP [color=#ff7766]%d[/color], STM [color=#55ccff]%d[/color]\n" % [
 		node.get("enemy_hp", 0), node.get("enemy_stm", 0),
@@ -1450,10 +1456,15 @@ func _update_inspector(node: Dictionary, is_pinned: bool = false) -> void:
 
 	if is_pruned:
 		bb += "[color=#ff5555][b]✂️ STATUS: DIPRUNE / CUTOFF![/b] Cabang ini tidak dievaluasi lebih lanjut karena α ≥ β (%s ≥ %s). Lawan dipastikan tidak akan memilih cabang ini, menghemat iterasi pencarian.[/color]" % [a_str, b_str]
+	elif is_root:
+		if is_max:
+			bb += "[color=#88ccff]• Root (Giliran AI): AI mengevaluasi semua opsi aksi untuk mencari nilai tertinggi (MAX).[/color]"
+		else:
+			bb += "[color=#ffaa77]• Root (Giliran Player): Menampilkan pohon kemungkinan dari giliran Player (MIN).[/color]"
 	elif is_max:
-		bb += "[color=#88ccff]• Logika MAX: AI mencari nilai evaluasi [b]tertinggi[/b] dari semua kemungkinan cabang anaknya.[/color]"
+		bb += "[color=#88ccff]• Logika MAX: Aksi AI / Enemy. AI mencari nilai evaluasi [b]tertinggi[/b] dari semua kemungkinan cabang anaknya.[/color]"
 	else:
-		bb += "[color=#ffaa77]• Logika MIN: AI memprediksi player akan memilih balasan dengan nilai [b]terendah[/b] bagi AI.[/color]"
+		bb += "[color=#ffaa77]• Logika MIN: Respon Player. AI memprediksi player akan memilih balasan dengan nilai [b]terendah[/b] bagi AI.[/color]"
 
 	inspector_label.text = bb
 

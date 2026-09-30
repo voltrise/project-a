@@ -1124,13 +1124,6 @@ func _build_debug_overlay() -> void:
 
 	vbox.add_child(HSeparator.new())
 
-	# Benchmark Button
-	var exp_btn := Button.new()
-	exp_btn.text = "🔬 Jalankan Benchmark AI"
-	exp_btn.custom_minimum_size.y = 30
-	exp_btn.pressed.connect(_on_run_experiments)
-	vbox.add_child(exp_btn)
-
 	# Tree Visualizer Button
 	var tree_btn := Button.new()
 	tree_btn.text = "🌳 Visualisasi Tree Minimax [F4]"
@@ -1253,51 +1246,6 @@ func _update_debug_overlay(decision: Dictionary) -> void:
 			row.add_child(best_badge)
 
 		candidates_container.add_child(row)
-
-
-func _on_run_experiments() -> void:
-	if not experiment_modal or not experiment_text:
-		return
-	_show_banner("Menjalankan Benchmark AI...", Color(0.95, 0.75, 0.3))
-	var results := ai.run_ai_experiments(state)
-
-	var bb := ""
-	bb += "[b][color=#f4d03f]═══ EKSPERIMEN 1: MINIMAX vs ALPHA-BETA vs MOVE ORDERING ═══[/color][/b]\n"
-	bb += "[table=6]"
-	bb += "[cell][b]Depth[/b][/cell][cell][b]Minimax[/b][/cell][cell][b]Alpha-Beta[/b][/cell][cell][b]Cutoffs[/b][/cell][cell][b]AB + Order[/b][/cell][cell][b]Match?[/b][/cell]"
-
-	for row in results.get("depth_comparison", []):
-		bb += "[cell]Depth %d[/cell]" % row["depth"]
-		bb += "[cell]%d (%.2f ms)[/cell]" % [row["mm_nodes"], row["mm_time_ms"]]
-		bb += "[cell]%d (%.2f ms)[/cell]" % [row["ab_nodes"], row["ab_time_ms"]]
-		bb += "[cell]%d[/cell]" % row["ab_prunes"]
-		bb += "[cell][color=#58d68d]%d (%.2f ms)[/color][/cell]" % [row["abo_nodes"], row["abo_time_ms"]]
-		bb += "[cell][color=#5dade2]%s[/color][/cell]" % str(row["match"])
-	bb += "[/table]\n\n"
-
-	bb += "[b][color=#f4d03f]═══ EKSPERIMEN 2: FUNGSI EVALUASI (DEPTH 4) ═══[/color][/b]\n"
-	bb += "[table=4]"
-	bb += "[cell][b]Fungsi[/b][/cell][cell][b]Aksi Dipilih[/b][/cell][cell][b]Skor[/b][/cell][cell][b]Nodes[/b][/cell]"
-	for row in results.get("eval_comparison", []):
-		bb += "[cell]%s[/cell]" % row["eval_name"]
-		bb += "[cell][color=#f39c12]%s[/color][/cell]" % row["action_name"]
-		bb += "[cell]%7.2f[/cell]" % row["score"]
-		bb += "[cell]%d[/cell]" % row["nodes"]
-	bb += "[/table]\n\n"
-
-	bb += "[b][color=#f4d03f]═══ EKSPERIMEN 3: MOVE ORDERING (DEPTH 4) ═══[/color][/b]\n"
-	bb += "[table=4]"
-	bb += "[cell][b]Mode Urutan[/b][/cell][cell][b]Aksi[/b][/cell][cell][b]Nodes[/b][/cell][cell][b]Cutoffs[/b][/cell]"
-	for row in results.get("order_comparison", []):
-		var col := "#58d68d" if "Optimal" in row["order_name"] else ("#ec7063" if "Reverse" in row["order_name"] else "#ffffff")
-		bb += "[cell]%s[/cell]" % row["order_name"]
-		bb += "[cell]%s[/cell]" % row["action_name"]
-		bb += "[cell][color=%s]%d[/color][/cell]" % [col, row["nodes"]]
-		bb += "[cell]%d[/cell]" % row["prunes"]
-	bb += "[/table]\n"
-
-	experiment_text.text = bb
-	experiment_modal.visible = true
 
 
 func get_active_leader_type() -> String:
