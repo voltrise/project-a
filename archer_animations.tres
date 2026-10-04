@@ -1,8 +1,8 @@
-[gd_resource type="AnimationLibrary" format=3 uid="uid://d4k4wggv0jq5w"]
+[gd_resource type="AnimationLibrary" format=3 uid="uid://cddvrklm7mhdl"]
 
-[ext_resource type="Texture2D" uid="uid://kes7405hlhdl" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Idle.png" id="1_idle"]
-[ext_resource type="Texture2D" uid="uid://de7rwxuiwvg4v" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Run.png" id="2_run"]
-[ext_resource type="Texture2D" uid="uid://b348ogdaj4v3e" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Shoot.png" id="3_shoot"]
+[ext_resource type="Texture2D" uid="uid://kes7405hlhdl" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Idle.png" id="1_8bire"]
+[ext_resource type="Texture2D" uid="uid://b348ogdaj4v3e" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Shoot.png" id="2_4cvf4"]
+[ext_resource type="Texture2D" uid="uid://de7rwxuiwvg4v" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Archer/Archer_Run.png" id="3_v0t5g"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -16,7 +16,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("1_idle")]
+"values": [ExtResource("1_8bire")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -68,7 +68,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("1_idle")]
+"values": [ExtResource("1_8bire")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -119,7 +119,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("3_shoot")]
+"values": [ExtResource("2_4cvf4")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -171,7 +171,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("2_run")]
+"values": [ExtResource("3_v0t5g")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false

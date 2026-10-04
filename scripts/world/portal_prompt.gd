@@ -1001,7 +1001,7 @@ func _execute_start_battle(player_info: Dictionary, npc_data: Dictionary) -> voi
 	if BattleManagerClass.ENEMY_PRESETS.has(enemy_preset_key):
 		enemy_data = BattleManagerClass.ENEMY_PRESETS[enemy_preset_key]
 	else:
-		enemy_data = BattleManagerClass.ENEMY_PRESETS["slime"]
+		enemy_data = BattleManagerClass.ENEMY_PRESETS["thief"]
 
 	var return_scene: String = "res://Overworld.tscn"
 	if get_tree() and get_tree().current_scene and get_tree().current_scene.scene_file_path != "":

@@ -30,34 +30,44 @@ var ai_search_depth: int = 4
 ## Nanti bisa diganti dengan enemies.json atau enemy spawner.
 
 const ENEMY_PRESETS: Dictionary = {
-	"slime": {
-		"name": "Slime",
-		"tier": "Common",
+	"thief": {
+		"name": "Thief",
+		"tier": "Easy",
 		"image": "",
 	},
-	"goblin": {
-		"name": "Goblin",
-		"tier": "Uncommon",
+	"skeleton": {
+		"name": "Skeleton",
+		"tier": "Easy",
 		"image": "",
 	},
-	"skeleton_knight": {
-		"name": "Skeleton Knight",
-		"tier": "Rare",
+	"gnome": {
+		"name": "Gnome",
+		"tier": "Easy",
 		"image": "",
 	},
-	"dark_mage": {
-		"name": "Dark Mage",
-		"tier": "Epic",
+	"torch_goblin": {
+		"name": "Torch Goblin",
+		"tier": "Medium",
 		"image": "",
 	},
-	"dragon": {
-		"name": "Dragon",
-		"tier": "Legendary",
+	"spear_goblin": {
+		"name": "Spear Goblin",
+		"tier": "Medium",
 		"image": "",
 	},
-	"demon_lord": {
-		"name": "Demon Lord",
-		"tier": "Mythic",
+	"panda": {
+		"name": "Panda",
+		"tier": "Hard",
+		"image": "",
+	},
+	"minotaur": {
+		"name": "Minotaur",
+		"tier": "Hard",
+		"image": "",
+	},
+	"troll": {
+		"name": "Troll",
+		"tier": "Boss",
 		"image": "",
 	},
 }

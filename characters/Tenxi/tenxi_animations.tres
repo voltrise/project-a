@@ -1,7 +1,7 @@
 [gd_resource type="AnimationLibrary" format=3]
 
-[ext_resource type="Texture2D" path="res://characters/Tenxi/Tenxi_Idle.png" id="1_idle"]
-[ext_resource type="Texture2D" path="res://characters/Tenxi/Tenxi_Run.png" id="2_run"]
+[ext_resource type="Texture2D" uid="uid://csdw0t3lclrce" path="res://characters/Tenxi/Tenxi_Idle.png" id="1_idle"]
+[ext_resource type="Texture2D" uid="uid://bprgx4nr8lg8" path="res://characters/Tenxi/Tenxi_Run.png" id="2_run"]
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001

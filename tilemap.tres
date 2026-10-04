@@ -1,10 +1,10 @@
 [gd_resource type="TileSet" format=3 uid="uid://cc7if8kksb0hp"]
 
-[ext_resource type="Texture2D" uid="uid://7qoy8a28np3m" path="res://Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color1.png" id="1_uii8b"]
-[ext_resource type="Texture2D" uid="uid://cl43qnwq8bwho" path="res://Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color2.png" id="2_mv1co"]
-[ext_resource type="Texture2D" uid="uid://ckevqbqe4bs1b" path="res://Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color3.png" id="4_j0455"]
-[ext_resource type="Texture2D" uid="uid://cctia2ypn52i7" path="res://Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color4.png" id="5_whbdd"]
-[ext_resource type="Texture2D" uid="uid://ducrvhxfx20ip" path="res://Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color5.png" id="6_08hs3"]
+[ext_resource type="Texture2D" uid="uid://7qoy8a28np3m" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color1.png" id="1_uii8b"]
+[ext_resource type="Texture2D" uid="uid://cl43qnwq8bwho" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color2.png" id="2_mv1co"]
+[ext_resource type="Texture2D" uid="uid://ckevqbqe4bs1b" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color3.png" id="4_j0455"]
+[ext_resource type="Texture2D" uid="uid://cctia2ypn52i7" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color4.png" id="5_whbdd"]
+[ext_resource type="Texture2D" uid="uid://ducrvhxfx20ip" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/Tilemap_color5.png" id="6_08hs3"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_s20o0"]
 texture = ExtResource("1_uii8b")

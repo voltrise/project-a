@@ -1,25 +1,25 @@
-[gd_resource type="AnimationLibrary" format=3 uid="uid://dbqvutmmk3w8p"]
+[gd_resource type="AnimationLibrary" format=3 uid="uid://bgi1m308o8n6l"]
 
-[ext_resource type="Texture2D" uid="uid://chju2u50celj1" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle.png" id="1_sq8sx"]
-[ext_resource type="Texture2D" uid="uid://ddl03cyjw2ugm" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Axe.png" id="2_edrwj"]
-[ext_resource type="Texture2D" uid="uid://c8s586pm00snh" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Gold.png" id="3_jw1tn"]
-[ext_resource type="Texture2D" uid="uid://ci4olxdaetbly" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Hammer.png" id="4_7u0i2"]
-[ext_resource type="Texture2D" uid="uid://ed7gm88je4pd" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Knife.png" id="5_hy0im"]
-[ext_resource type="Texture2D" uid="uid://bnis40kw0xpye" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Meat.png" id="6_qg01g"]
-[ext_resource type="Texture2D" uid="uid://bcv537rldqgk3" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Pickaxe.png" id="7_5k52j"]
-[ext_resource type="Texture2D" uid="uid://1etpwlu5mo64" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Wood.png" id="8_1r2v7"]
-[ext_resource type="Texture2D" uid="uid://cw1xoilkflivm" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Axe.png" id="9_fh2im"]
-[ext_resource type="Texture2D" uid="uid://cigormpb3337v" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Hammer.png" id="10_rcl5k"]
-[ext_resource type="Texture2D" uid="uid://v6x42r8w2oif" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Knife.png" id="11_36nti"]
-[ext_resource type="Texture2D" uid="uid://8m6786371gqg" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Pickaxe.png" id="12_fd874"]
-[ext_resource type="Texture2D" uid="uid://cljlay5ap140u" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run.png" id="13_irdaq"]
-[ext_resource type="Texture2D" uid="uid://byd8usn3xj6mp" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Axe.png" id="14_bf4oq"]
-[ext_resource type="Texture2D" uid="uid://c38pd63tjsei2" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Gold.png" id="15_l81tt"]
-[ext_resource type="Texture2D" uid="uid://bby2uid0cwtso" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Hammer.png" id="16_w5qeo"]
-[ext_resource type="Texture2D" uid="uid://dmejjps0be486" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Knife.png" id="17_k8slt"]
-[ext_resource type="Texture2D" uid="uid://pga5q4l7058r" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Meat.png" id="18_1b876"]
-[ext_resource type="Texture2D" uid="uid://djlrqlnlpbeis" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Pickaxe.png" id="19_iopia"]
-[ext_resource type="Texture2D" uid="uid://cgttlqdb1gx1f" path="res://Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Wood.png" id="20_nniu8"]
+[ext_resource type="Texture2D" uid="uid://chju2u50celj1" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle.png" id="1_trhmk"]
+[ext_resource type="Texture2D" uid="uid://ddl03cyjw2ugm" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Axe.png" id="2_yrr0u"]
+[ext_resource type="Texture2D" uid="uid://c8s586pm00snh" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Gold.png" id="3_e2eqs"]
+[ext_resource type="Texture2D" uid="uid://ci4olxdaetbly" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Hammer.png" id="4_mgg4e"]
+[ext_resource type="Texture2D" uid="uid://ed7gm88je4pd" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Knife.png" id="5_by3rt"]
+[ext_resource type="Texture2D" uid="uid://bnis40kw0xpye" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Meat.png" id="6_vvswg"]
+[ext_resource type="Texture2D" uid="uid://bcv537rldqgk3" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Pickaxe.png" id="7_2kkw5"]
+[ext_resource type="Texture2D" uid="uid://1etpwlu5mo64" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle Wood.png" id="8_xekrp"]
+[ext_resource type="Texture2D" uid="uid://cw1xoilkflivm" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Axe.png" id="9_p2avp"]
+[ext_resource type="Texture2D" uid="uid://cigormpb3337v" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Hammer.png" id="10_4wiuk"]
+[ext_resource type="Texture2D" uid="uid://v6x42r8w2oif" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Knife.png" id="11_i6fyj"]
+[ext_resource type="Texture2D" uid="uid://8m6786371gqg" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Interact Pickaxe.png" id="12_52r7e"]
+[ext_resource type="Texture2D" uid="uid://cljlay5ap140u" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run.png" id="13_o0x0y"]
+[ext_resource type="Texture2D" uid="uid://byd8usn3xj6mp" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Axe.png" id="14_p44tm"]
+[ext_resource type="Texture2D" uid="uid://c38pd63tjsei2" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Gold.png" id="15_2f46e"]
+[ext_resource type="Texture2D" uid="uid://bby2uid0cwtso" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Hammer.png" id="16_fg77r"]
+[ext_resource type="Texture2D" uid="uid://dmejjps0be486" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Knife.png" id="17_wypgx"]
+[ext_resource type="Texture2D" uid="uid://pga5q4l7058r" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Meat.png" id="18_pbpvn"]
+[ext_resource type="Texture2D" uid="uid://djlrqlnlpbeis" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Pickaxe.png" id="19_6awo8"]
+[ext_resource type="Texture2D" uid="uid://cgttlqdb1gx1f" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Run Wood.png" id="20_q5o67"]
 
 [sub_resource type="Animation" id="Animation_yh5vu"]
 length = 0.001
@@ -33,7 +33,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("1_sq8sx")]
+"values": [ExtResource("1_trhmk")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -85,7 +85,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("1_sq8sx")]
+"values": [ExtResource("1_trhmk")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -137,7 +137,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("2_edrwj")]
+"values": [ExtResource("2_yrr0u")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -189,7 +189,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("3_jw1tn")]
+"values": [ExtResource("3_e2eqs")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -241,7 +241,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("4_7u0i2")]
+"values": [ExtResource("4_mgg4e")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -293,7 +293,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("5_hy0im")]
+"values": [ExtResource("5_by3rt")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -345,7 +345,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("6_qg01g")]
+"values": [ExtResource("6_vvswg")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -397,7 +397,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("7_5k52j")]
+"values": [ExtResource("7_2kkw5")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -449,7 +449,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("8_1r2v7")]
+"values": [ExtResource("8_xekrp")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -500,7 +500,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("9_fh2im")]
+"values": [ExtResource("9_p2avp")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -551,7 +551,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("10_rcl5k")]
+"values": [ExtResource("10_4wiuk")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -602,7 +602,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("11_36nti")]
+"values": [ExtResource("11_i6fyj")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -653,7 +653,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("12_fd874")]
+"values": [ExtResource("12_52r7e")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -705,7 +705,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("13_irdaq")]
+"values": [ExtResource("13_o0x0y")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -757,7 +757,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("14_bf4oq")]
+"values": [ExtResource("14_p44tm")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -809,7 +809,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("15_l81tt")]
+"values": [ExtResource("15_2f46e")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -861,7 +861,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("16_w5qeo")]
+"values": [ExtResource("16_fg77r")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -913,7 +913,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("17_k8slt")]
+"values": [ExtResource("17_wypgx")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -965,7 +965,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("18_1b876")]
+"values": [ExtResource("18_pbpvn")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -1017,7 +1017,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("19_iopia")]
+"values": [ExtResource("19_6awo8")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -1069,7 +1069,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("20_nniu8")]
+"values": [ExtResource("20_q5o67")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
