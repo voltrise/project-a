@@ -9,7 +9,7 @@ var active_tween: Tween = null
 
 # Zoom configuration
 @export var zoom_speed: float = 0.1
-@export var min_zoom: float = 0.5   # Maximum zoomed out
+@export var min_zoom: float = 0.2   # Maximum zoomed out
 @export var max_zoom: float = 2.0   # Maximum zoomed in
 
 func _ready() -> void:

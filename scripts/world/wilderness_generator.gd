@@ -1,503 +1,616 @@
 class_name WildernessGenerator
 extends RefCounted
 
-## 5x5 Chunk-Based Maze & Enemy Generator (Soul Knight Style)
-## Menggunakan Local Search & Optimization (Slide 1-22).
+## Hybrid Generator: CSP (Backtracking + MRV + LCV + AC-3) + Local Search
 ##
-## Fitur:
-## - 5x5 Chunk (25 Chunk total), masing-masing berukuran 5x5 tile (Total 25x25 tile).
-## - Bentuk setiap chunk sesuai sample:
-##   - 4 sudut batu (Rock4)
-##   - Pintu atas/bawah/kiri/kanan terbuka (Path) atau tertutup (Rock4)
-##   - 9 tile interior selalu walkable path
-## - Player mulai di Chunk (0, 0).
-## - Portal keluar berada di Chunk random (selain 0, 0).
-## - Setiap chunk memiliki maksimal 1 enemy (atau 0 enemy).
-## - Chunk Start (0, 0) dan Chunk Portal TIDAK BISA memiliki enemy.
-## - Local Search mengoptimasi koneksi pintu & sebaran musuh agar
-##   labirin solvable dan tantangannya seimbang (Slide 22).
+## 1. Fase CSP:
+##    - Membangun layout grid chunk yang 100% konsisten (koneksi pintu antar chunk cocok).
+##    - Memastikan pintu Start (0, 0) dan Exit Portal terhubung tanpa jalan buntu.
+##    - Menggunakan CSPSolver (Backtracking, MRV/MRV+Degree, LCV, Forward Checking/AC-3).
+##
+## 2. Fase Local Search:
+##    - Mengambil layout legal dari CSP.
+##    - Mengisi musuh dan item dari WildernessTemplates.
+##    - Menyetel penempatan musuh/item agar tingkat kesulitan (Difficulty)
+##      mendekati target user (Easy, Medium, Hard).
+##    - Menggunakan Simulated Annealing atau Hill Climbing dengan Random Restarts.
 
-const GRID_W: int = 5
-const GRID_H: int = 5
-const CHUNK_SIZE: int = 5
+const CSPSolverClass = preload("res://scripts/world/csp_solver.gd")
 
-class ChunkData:
-	var grid_pos: Vector2i = Vector2i.ZERO
-	var door_north: bool = false
-	var door_south: bool = false
-	var door_east: bool = false
-	var door_west: bool = false
-	var has_enemy: bool = false
-	var enemy_threat: float = 0.0
-	var enemy_name: String = "Skeleton Guard"
-	var enemy_tier: String = "Common"
-	var enemy_hp: int = 85
-	var enemy_atk: int = 16
-	var has_portal: bool = false
-	
-	func duplicate_chunk() -> ChunkData:
-		var c = ChunkData.new()
-		c.grid_pos = self.grid_pos
-		c.door_north = self.door_north
-		c.door_south = self.door_south
-		c.door_east = self.door_east
-		c.door_west = self.door_west
-		c.has_enemy = self.has_enemy
-		c.enemy_threat = self.enemy_threat
-		c.enemy_name = self.enemy_name
-		c.enemy_tier = self.enemy_tier
-		c.enemy_hp = self.enemy_hp
-		c.enemy_atk = self.enemy_atk
-		c.has_portal = self.has_portal
-		return c
-
-class MazeState:
-	var chunks: Dictionary = {} # Vector2i -> ChunkData
+class GeneratedMapState:
+	var grid_w: int = 5
+	var grid_h: int = 5
 	var start_chunk: Vector2i = Vector2i(0, 0)
 	var portal_chunk: Vector2i = Vector2i(4, 4)
 	
-	# Metrics Evaluasi
+	# Mapping: Vector2i -> template_id (String)
+	var chunk_templates: Dictionary = {}
+	
+	# Mapping: Vector2i -> Entity Data
+	# Entity Data: { "type": "enemy"|"item"|"empty", "node_name": String, "name": String, "threat": float, "benefit": float, "tier": String, "hp": int, "atk": int }
+	var chunk_entities: Dictionary = {}
+	
+	# Evaluasi & Analisis
+	var chunk_path: Array = [] # Urutan rute Start -> Portal
+	var difficulty_score: float = 0.0
 	var energy: float = 99999.0
 	var is_solvable: bool = false
-	var chunk_path: Array = [] # Urutan room dari start ke portal
-	var path_threat: float = 0.0
-	var reachable_rooms: int = 0
 	
-	func duplicate_state() -> MazeState:
-		var s = MazeState.new()
+	func duplicate_state() -> GeneratedMapState:
+		var s = GeneratedMapState.new()
+		s.grid_w = self.grid_w
+		s.grid_h = self.grid_h
 		s.start_chunk = self.start_chunk
 		s.portal_chunk = self.portal_chunk
-		s.chunks = {}
-		for k in self.chunks.keys():
-			s.chunks[k] = self.chunks[k].duplicate_chunk()
+		s.chunk_templates = self.chunk_templates.duplicate()
+		s.chunk_entities = {}
+		for k in self.chunk_entities.keys():
+			s.chunk_entities[k] = self.chunk_entities[k].duplicate()
+		s.chunk_path = self.chunk_path.duplicate()
+		s.difficulty_score = self.difficulty_score
 		s.energy = self.energy
 		s.is_solvable = self.is_solvable
-		s.chunk_path = self.chunk_path.duplicate()
-		s.path_threat = self.path_threat
-		s.reachable_rooms = self.reachable_rooms
 		return s
 
-# Pilihan variasi Skeleton untuk enemy
-const SKELETON_ROLES: Array = [
-	{ "name": "Skeleton Scout", "tier": "Common", "threat": 15.0, "hp": 75, "atk": 14 },
-	{ "name": "Skeleton Guard", "tier": "Common", "threat": 20.0, "hp": 90, "atk": 16 },
-	{ "name": "Skeleton Warrior", "tier": "Uncommon", "threat": 28.0, "hp": 120, "atk": 22 },
-	{ "name": "Skeleton Knight", "tier": "Rare", "threat": 40.0, "hp": 160, "atk": 30 },
-	{ "name": "Skeleton Captain", "tier": "Epic", "threat": 55.0, "hp": 210, "atk": 38 }
-]
+var templates_mgr = null
+var csp_solver: CSPSolverClass = null
+
+func _init(p_templates_mgr = null) -> void:
+	templates_mgr = p_templates_mgr
+	csp_solver = CSPSolverClass.new()
 
 # =========================================================================
-# INITIAL STATE GENERATION (Seed Awal / Maze Spanning Tree)
+# 1. FASE CSP: GENERASI STRUKTUR CHUNK (DOOR MATCHING & REACHABILITY)
 # =========================================================================
-func create_initial_state(random_portal: bool = true) -> MazeState:
-	var state = MazeState.new()
-	state.start_chunk = Vector2i(0, 0)
+func run_csp_chunk_generation(
+	var_heuristic: int = 2,    # 0: Fixed, 1: MRV, 2: MRV+Degree
+	val_heuristic: int = 1,    # 0: Default, 1: LCV
+	inference_mode: int = 2,   # 0: None, 1: Forward Checking, 2: AC-3
+	random_portal: bool = true,
+	record_steps: bool = false
+) -> Dictionary:
+	var gw = templates_mgr.grid_chunks_n if templates_mgr else 5
+	var gh = templates_mgr.grid_chunks_m if templates_mgr else 5
 	
-	# Pilih Portal keluar di chunk acak selain (0, 0)
+	# Spawn player di sisi luar map (coastline/border)
+	var coastline_candidates: Array = []
+	for cx in range(gw):
+		for cy in range(gh):
+			if cx == 0 or cx == gw - 1 or cy == 0 or cy == gh - 1:
+				coastline_candidates.append(Vector2i(cx, cy))
+	var start_pos = coastline_candidates[randi() % coastline_candidates.size()]
+	
+	var portal_pos = Vector2i(gw - 1, gh - 1)
 	if random_portal:
-		var candidates: Array = []
-		for cx in range(GRID_W):
-			for cy in range(GRID_H):
-				var pos = Vector2i(cx, cy)
-				if pos != state.start_chunk and (pos.x >= 2 or pos.y >= 2):
-					candidates.append(pos)
-		state.portal_chunk = candidates[randi() % candidates.size()]
-	else:
-		state.portal_chunk = Vector2i(GRID_W - 1, GRID_H - 1)
-		
-	# Inisialisasi 25 Chunks
-	for cx in range(GRID_W):
-		for cy in range(GRID_H):
-			var pos = Vector2i(cx, cy)
-			var chunk = ChunkData.new()
-			chunk.grid_pos = pos
-			if pos == state.portal_chunk:
-				chunk.has_portal = true
-			state.chunks[pos] = chunk
-			
-	# Buat labirin awal dengan Randomized Depth-First Search (DFS) Spanning Tree
-	_generate_dfs_maze(state)
-	
-	# Tambahkan beberapa loop tambahan (10% extra doors) agar labirin punya banyak rute
-	_add_random_loops(state, 6)
-	
-	# Tentukan musuh (maksimal 1 per chunk, portal & start tidak boleh ada musuh)
-	for pos in state.chunks.keys():
-		if pos == state.start_chunk or pos == state.portal_chunk:
-			continue
-		var chunk: ChunkData = state.chunks[pos]
-		# 55% kemungkinan muncul enemy di chunk ini
-		if randf() < 0.55:
-			_assign_random_enemy(chunk)
-			
-	return state
+		var portal_candidates: Array = []
+		var min_dist = max(3, int((gw + gh) * 0.45))
+		for cx in range(gw):
+			for cy in range(gh):
+				var p = Vector2i(cx, cy)
+				var dist = abs(p.x - start_pos.x) + abs(p.y - start_pos.y)
+				if p != start_pos and dist >= min_dist:
+					portal_candidates.append(p)
+		if portal_candidates.is_empty():
+			for cx in range(gw):
+				for cy in range(gh):
+					var p = Vector2i(cx, cy)
+					if p != start_pos: portal_candidates.append(p)
+		portal_pos = portal_candidates[randi() % portal_candidates.size()]
 
-func _generate_dfs_maze(state: MazeState) -> void:
-	var visited: Dictionary = {}
-	var stack: Array = [state.start_chunk]
-	visited[state.start_chunk] = true
-	
-	while not stack.is_empty():
-		var curr: Vector2i = stack[stack.size() - 1]
-		var neighbors: Array = []
+	# Variabel CSP: Setiap koordinat chunk (x, y)
+	var variables: Array = []
+	for cx in range(gw):
+		for cy in range(gh):
+			variables.append(Vector2i(cx, cy))
+			
+	# Buat Graf Tetangga (Grid Adjacency)
+	var neighbors: Dictionary = {}
+	for pos in variables:
+		var nbs: Array = []
 		for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
-			var n = curr + dir
-			if n.x >= 0 and n.x < GRID_W and n.y >= 0 and n.y < GRID_H:
-				if not visited.has(n):
-					neighbors.append(n)
+			var nb = pos + dir
+			if nb.x >= 0 and nb.x < gw and nb.y >= 0 and nb.y < gh:
+				nbs.append(nb)
+		neighbors[pos] = nbs
+		
+	# Ambil semua template dari template manager
+	var raw_templates = templates_mgr.get_chunk_templates() if templates_mgr else []
+	var template_dict: Dictionary = {}
+	for tpl in raw_templates:
+		template_dict[tpl.id] = tpl
+		
+	# Bangun spine path rute awal Start -> Portal sebagai panduan Unary Constraint
+	var spine_path: Array = _generate_spine_path(start_pos, portal_pos, gw, gh)
+	
+	# Inisialisasi Domain per Variabel dengan Unary Constraints (Border Walls)
+	var initial_domains: Dictionary = {}
+	for pos in variables:
+		var allowed: Array = []
+		for tpl in raw_templates:
+			var doors: Array = tpl.doors # [N, S, E, W]
+			# Border Unary Constraints: Pintu tidak boleh mengarah keluar batas map
+			if pos.y == 0 and doors[0]: continue
+			if pos.y == gh - 1 and doors[1]: continue
+			if pos.x == gw - 1 and doors[2]: continue
+			if pos.x == 0 and doors[3]: continue
+			
+			# Start & Portal tidak boleh Solid (harus ada minimal 1 pintu)
+			if (pos == start_pos or pos == portal_pos) and tpl.id == "SOLID":
+				continue
+				
+			allowed.append(tpl.id)
+			
+		# Acak sedikit urutan domain untuk menghasilkan variasi labirin tiap run
+		allowed.shuffle()
+		initial_domains[pos] = allowed
+
+	# Terapkan Unary Constraint untuk spine path agar jalur dijamin terhubung tanpa loop buntu
+	for i in range(spine_path.size()):
+		var p_curr: Vector2i = spine_path[i]
+		var req_doors: Dictionary = {}
+		if i > 0:
+			var p_prev: Vector2i = spine_path[i - 1]
+			var diff = p_prev - p_curr
+			if diff == Vector2i(0, -1): req_doors[0] = true
+			elif diff == Vector2i(0, 1): req_doors[1] = true
+			elif diff == Vector2i(1, 0): req_doors[2] = true
+			elif diff == Vector2i(-1, 0): req_doors[3] = true
+		if i < spine_path.size() - 1:
+			var p_next: Vector2i = spine_path[i + 1]
+			var diff = p_next - p_curr
+			if diff == Vector2i(0, -1): req_doors[0] = true
+			elif diff == Vector2i(0, 1): req_doors[1] = true
+			elif diff == Vector2i(1, 0): req_doors[2] = true
+			elif diff == Vector2i(-1, 0): req_doors[3] = true
+			
+		var constrained: Array = []
+		for tpl_id in initial_domains[p_curr]:
+			var tpl = template_dict[tpl_id]
+			var match_all = true
+			for d_idx in req_doors.keys():
+				if not tpl.doors[d_idx]:
+					match_all = false
+					break
+			if match_all:
+				constrained.append(tpl_id)
+		if not constrained.is_empty():
+			initial_domains[p_curr] = constrained
+		
+	# Binary Constraint Function: Pintu antar 2 chunk yang bertetangga harus cocok!
+	# (Jika A membuka ke Timur, tetangga B di Timur WAJIB membuka ke Barat)
+	var constraint_func = func(pos_a: Vector2i, tpl_a_id: String, pos_b: Vector2i, tpl_b_id: String) -> bool:
+		var tpl_a = template_dict[tpl_a_id]
+		var tpl_b = template_dict[tpl_b_id]
+		var diff = pos_b - pos_a
+		if diff == Vector2i(1, 0): # B di Timur A
+			return tpl_a.doors[2] == tpl_b.doors[3]
+		elif diff == Vector2i(-1, 0): # B di Barat A
+			return tpl_a.doors[3] == tpl_b.doors[2]
+		elif diff == Vector2i(0, 1): # B di Selatan A
+			return tpl_a.doors[1] == tpl_b.doors[0]
+		elif diff == Vector2i(0, -1): # B di Utara A
+			return tpl_a.doors[0] == tpl_b.doors[1]
+		return true
+
+	# Global Validator: Jalur dari Start ke Portal harus terhubung
+	var global_validator = func(assignments: Dictionary) -> bool:
+		var path = _find_bfs_path(assignments, template_dict, start_pos, portal_pos, gw, gh)
+		return not path.is_empty()
+
+	# Konfigurasi solver
+	csp_solver.var_heuristic = var_heuristic
+	csp_solver.val_heuristic = val_heuristic
+	csp_solver.inference_mode = inference_mode
+	csp_solver.record_steps = record_steps
+	
+	csp_solver.setup(variables, initial_domains, neighbors, constraint_func, global_validator)
+	var csp_result = csp_solver.solve()
+	
+	var map_state = GeneratedMapState.new()
+	map_state.grid_w = gw
+	map_state.grid_h = gh
+	map_state.start_chunk = start_pos
+	map_state.portal_chunk = portal_pos
+	
+	if csp_result.success:
+		map_state.chunk_templates = csp_result.assignments.duplicate()
+		# Reachability Rule: Setiap chunk non-solid WAJIB dapat dilewati oleh player!
+		# Jika ada chunk yang terputus dari Start, ubah menjadi SOLID (closed off)
+		var reachable = get_reachable_chunks(map_state.chunk_templates, template_dict, start_pos, gw, gh)
+		for pos in variables:
+			if not reachable.has(pos):
+				map_state.chunk_templates[pos] = "SOLID"
+				
+		map_state.chunk_path = _find_bfs_path(map_state.chunk_templates, template_dict, start_pos, portal_pos, gw, gh)
+		map_state.is_solvable = not map_state.chunk_path.is_empty()
+	else:
+		# Fallback darurat jika ada constraint over-constrained
+		_build_fallback_connected_layout(map_state, template_dict)
+		map_state.chunk_path = _find_bfs_path(map_state.chunk_templates, template_dict, start_pos, portal_pos, gw, gh)
+		map_state.is_solvable = not map_state.chunk_path.is_empty()
+		
+	return {
+		"csp_result": csp_result,
+		"map_state": map_state,
+		"steps": csp_result.get("steps", [])
+	}
+
+# =========================================================================
+# 2. FASE LOCAL SEARCH: POPULASI & BALANCING MUSUH SERTA ITEM
+# =========================================================================
+func run_local_search_optimization(
+	base_map: GeneratedMapState,
+	target_difficulty: float = 80.0,
+	algorithm: String = "simulated_annealing",
+	max_steps: int = 150,
+	record_steps: bool = false
+) -> Dictionary:
+	var enemy_pool = templates_mgr.get_enemy_pool() if templates_mgr else []
+	var item_pool = templates_mgr.get_item_pool() if templates_mgr else []
+	
+	# Inisialisasi entitas awal di semua chunk legal (bukan start, bukan portal)
+	var current_state = base_map.duplicate_state()
+	_initialize_random_entities(current_state, enemy_pool, item_pool)
+	_evaluate_state(current_state, target_difficulty)
+	
+	var best_state = current_state.duplicate_state()
+	var history: Array = []
+	var search_steps: Array = []
+	
+	if record_steps:
+		search_steps.append({
+			"phase": "local_search",
+			"type": "init",
+			"step_num": 0,
+			"state": current_state.duplicate_state(),
+			"energy": current_state.energy,
+			"diff": current_state.difficulty_score,
+			"temp": 100.0,
+			"var": null,
+			"desc": "Initial Entity Layout: Difficulty = %.1f (Target = %.1f, Energy = %.1f)" % [current_state.difficulty_score, target_difficulty, current_state.energy]
+		})
+	
+	if algorithm == "simulated_annealing":
+		var temp = 100.0
+		var cooling = 0.97
+		for step in range(max_steps):
+			var neighbor = current_state.duplicate_state()
+			_mutate_state(neighbor, enemy_pool, item_pool)
+			_evaluate_state(neighbor, target_difficulty)
+			
+			var delta_e = neighbor.energy - current_state.energy
+			var accepted = delta_e < 0.0 or randf() < exp(-delta_e / max(0.01, temp))
+			if accepted:
+				current_state = neighbor
+				if current_state.energy < best_state.energy:
+					best_state = current_state.duplicate_state()
 					
-		if neighbors.is_empty():
-			stack.pop_back()
-		else:
-			var chosen: Vector2i = neighbors[randi() % neighbors.size()]
-			_open_door_between(state, curr, chosen)
-			visited[chosen] = true
-			stack.append(chosen)
-
-func _open_door_between(state: MazeState, c1_pos: Vector2i, c2_pos: Vector2i) -> void:
-	var c1: ChunkData = state.chunks.get(c1_pos)
-	var c2: ChunkData = state.chunks.get(c2_pos)
-	if c1 == null or c2 == null:
-		return
-	var diff = c2_pos - c1_pos
-	if diff == Vector2i(1, 0): # c2 di East
-		c1.door_east = true
-		c2.door_west = true
-	elif diff == Vector2i(-1, 0): # c2 di West
-		c1.door_west = true
-		c2.door_east = true
-	elif diff == Vector2i(0, 1): # c2 di South
-		c1.door_south = true
-		c2.door_north = true
-	elif diff == Vector2i(0, -1): # c2 di North
-		c1.door_north = true
-		c2.door_south = true
-
-func _close_door_between(state: MazeState, c1_pos: Vector2i, c2_pos: Vector2i) -> void:
-	var c1: ChunkData = state.chunks.get(c1_pos)
-	var c2: ChunkData = state.chunks.get(c2_pos)
-	if c1 == null or c2 == null:
-		return
-	var diff = c2_pos - c1_pos
-	if diff == Vector2i(1, 0):
-		c1.door_east = false
-		c2.door_west = false
-	elif diff == Vector2i(-1, 0):
-		c1.door_west = false
-		c2.door_east = false
-	elif diff == Vector2i(0, 1):
-		c1.door_south = false
-		c2.door_north = false
-	elif diff == Vector2i(0, -1):
-		c1.door_north = false
-		c2.door_south = false
-
-func _add_random_loops(state: MazeState, count: int) -> void:
-	for i in range(count):
-		var cx = randi() % GRID_W
-		var cy = randi() % GRID_H
-		var pos = Vector2i(cx, cy)
-		var dirs = [Vector2i.RIGHT, Vector2i.DOWN]
-		var d = dirs[randi() % dirs.size()]
-		var next = pos + d
-		if next.x < GRID_W and next.y < GRID_H:
-			_open_door_between(state, pos, next)
-
-func _assign_random_enemy(chunk: ChunkData) -> void:
-	chunk.has_enemy = true
-	var role = SKELETON_ROLES[randi() % SKELETON_ROLES.size()]
-	chunk.enemy_name = role.name
-	chunk.enemy_tier = role.tier
-	chunk.enemy_threat = role.threat
-	chunk.enemy_hp = role.hp
-	chunk.enemy_atk = role.atk
-
-# =========================================================================
-# BFS CHUNK-PATHFINDING (Pencarian Rute Room Start -> Portal)
-# =========================================================================
-func _find_chunk_path(state: MazeState) -> Array:
-	var start = state.start_chunk
-	var goal = state.portal_chunk
-	
-	var queue: Array = [start]
-	var came_from: Dictionary = { start: null }
-	
-	while not queue.is_empty():
-		var curr: Vector2i = queue.pop_front()
-		if curr == goal:
-			var path: Array = []
-			var trace = curr
-			while trace != null:
-				path.append(trace)
-				trace = came_from[trace]
-			path.reverse()
-			return path
-			
-		var chunk: ChunkData = state.chunks.get(curr, null)
-		if chunk == null:
-			continue
-			
-		# Tetangga dengan pintu terbuka kedua arah
-		var neighbors: Array = []
-		if chunk.door_north and curr.y > 0:
-			var n = curr + Vector2i(0, -1)
-			var nc = state.chunks.get(n)
-			if nc and nc.door_south: neighbors.append(n)
-		if chunk.door_south and curr.y < GRID_H - 1:
-			var s = curr + Vector2i(0, 1)
-			var sc = state.chunks.get(s)
-			if sc and sc.door_north: neighbors.append(s)
-		if chunk.door_west and curr.x > 0:
-			var w = curr + Vector2i(-1, 0)
-			var wc = state.chunks.get(w)
-			if wc and wc.door_east: neighbors.append(w)
-		if chunk.door_east and curr.x < GRID_W - 1:
-			var e = curr + Vector2i(1, 0)
-			var ec = state.chunks.get(e)
-			if ec and ec.door_west: neighbors.append(e)
-			
-		for next_node in neighbors:
-			if not came_from.has(next_node):
-				came_from[next_node] = curr
-				queue.append(next_node)
+			if record_steps and (step < 30 or step % 2 == 0 or step == max_steps - 1) and search_steps.size() < 150:
+				var act = "Improved (Cost -%.1f)" % abs(delta_e) if delta_e < 0.0 else ("Accepted by Temp" if accepted else "Rejected")
+				search_steps.append({
+					"phase": "local_search",
+					"type": "mutate",
+					"step_num": step + 1,
+					"state": current_state.duplicate_state(),
+					"energy": current_state.energy,
+					"diff": current_state.difficulty_score,
+					"temp": temp,
+					"var": null,
+					"desc": "Step %d: %s. Current Energy = %.1f, Diff = %.1f" % [step + 1, act, current_state.energy, current_state.difficulty_score]
+				})
+					
+			temp *= cooling
+			if step % 5 == 0 or step == max_steps - 1:
+				history.append({
+					"step": step,
+					"temp": temp,
+					"current_energy": current_state.energy,
+					"best_energy": best_state.energy,
+					"current_diff": current_state.difficulty_score
+				})
+	else:
+		# Hill Climbing dengan Random Restarts
+		var restarts = 4
+		var steps_per_restart = int(max_steps / restarts)
+		for r in range(restarts):
+			if r > 0:
+				current_state = base_map.duplicate_state()
+				_initialize_random_entities(current_state, enemy_pool, item_pool)
+				_evaluate_state(current_state, target_difficulty)
 				
-	return []
-
-# =========================================================================
-# OBJECTIVE / FITNESS FUNCTION (Minimasi Energi E - Slide 7, 15, 22)
-# =========================================================================
-func evaluate_state(state: MazeState, target_difficulty: float) -> float:
-	var total_penalty: float = 0.0
-	
-	# 1. Reachability: Apakah Portal bisa dicapai dari Start (0, 0)?
-	var path = _find_chunk_path(state)
-	state.chunk_path = path
-	
-	if path.is_empty():
-		state.is_solvable = false
-		state.energy = 8000.0 # Penalti besar: labirin buntu
-		return state.energy
-		
-	state.is_solvable = true
-	var path_len = path.size()
-	
-	# 2. Pacing Labirin: Target panjang rute ideal 6 - 9 ruangan
-	var desired_len: int = 7
-	var len_gap = abs(path_len - desired_len)
-	total_penalty += float(len_gap) * 80.0
-	
-	# 3. Difficulty Balancing (Slide 22: Jumlah & Threat musuh yang dihadapi)
-	var accumulated_threat: float = 0.0
-	for c_pos in path:
-		var chunk: ChunkData = state.chunks[c_pos]
-		if chunk.has_enemy:
-			accumulated_threat += chunk.enemy_threat
-			
-	state.path_threat = accumulated_threat
-	var diff_gap = abs(accumulated_threat - target_difficulty)
-	total_penalty += diff_gap * 15.0
-	
-	# 4. Coverage / Connected Rooms
-	# Hitung berapa room yang bisa dijangkau dari start
-	var visited: Dictionary = {}
-	var q: Array = [state.start_chunk]
-	visited[state.start_chunk] = true
-	while not q.is_empty():
-		var curr = q.pop_front()
-		var chunk: ChunkData = state.chunks[curr]
-		var n_list: Array = []
-		if chunk.door_north and curr.y > 0 and state.chunks[curr + Vector2i.UP].door_south:
-			n_list.append(curr + Vector2i.UP)
-		if chunk.door_south and curr.y < GRID_H - 1 and state.chunks[curr + Vector2i.DOWN].door_north:
-			n_list.append(curr + Vector2i.DOWN)
-		if chunk.door_west and curr.x > 0 and state.chunks[curr + Vector2i.LEFT].door_east:
-			n_list.append(curr + Vector2i.LEFT)
-		if chunk.door_east and curr.x < GRID_W - 1 and state.chunks[curr + Vector2i.RIGHT].door_west:
-			n_list.append(curr + Vector2i.RIGHT)
-		for next_r in n_list:
-			if not visited.has(next_r):
-				visited[next_r] = true
-				q.append(next_r)
+			for step in range(steps_per_restart):
+				var neighbor = current_state.duplicate_state()
+				_mutate_state(neighbor, enemy_pool, item_pool)
+				_evaluate_state(neighbor, target_difficulty)
 				
-	state.reachable_rooms = visited.size()
-	# Penalti jika banyak room terisolasi (kurang dari 20 room terhubung)
-	if state.reachable_rooms < 20:
-		total_penalty += float(20 - state.reachable_rooms) * 50.0
-		
-	state.energy = total_penalty
-	return total_penalty
+				if neighbor.energy <= current_state.energy:
+					current_state = neighbor
+					if current_state.energy < best_state.energy:
+						best_state = current_state.duplicate_state()
+						
+				if step % 4 == 0:
+					history.append({
+						"step": r * steps_per_restart + step,
+						"restart": r + 1,
+						"current_energy": current_state.energy,
+						"best_energy": best_state.energy,
+						"current_diff": current_state.difficulty_score
+					})
+					
+	return {
+		"best_state": best_state,
+		"history": history,
+		"algorithm": algorithm,
+		"target_difficulty": target_difficulty,
+		"steps": search_steps
+	}
 
 # =========================================================================
-# NEIGHBOUR GENERATOR (Mutasi Kecil pada State - Slide 6, 7, 15)
+# HELPER LOCAL SEARCH: EVALUASI & MUTASI
 # =========================================================================
-func generate_neighbour(state: MazeState) -> MazeState:
-	var next_state = state.duplicate_state()
+func _evaluate_state(state: GeneratedMapState, target_difficulty: float) -> void:
+	var path_threat: float = 0.0
+	var side_threat: float = 0.0
+	var item_benefits: float = 0.0
+	
+	var path_set: Dictionary = {}
+	for p in state.chunk_path:
+		path_set[p] = true
+		
+	for pos in state.chunk_entities.keys():
+		var ent = state.chunk_entities[pos]
+		if ent.type == "enemy":
+			if path_set.has(pos):
+				path_threat += ent.threat
+			else:
+				side_threat += ent.threat * 0.35
+		elif ent.type == "item":
+			if path_set.has(pos):
+				item_benefits += ent.benefit
+			else:
+				item_benefits += ent.benefit * 0.5
+				
+	# Formula Difficulty:
+	# Panjang Rute * 8 + Ancaman Musuh - Bantuan Item
+	var path_len_score = float(state.chunk_path.size()) * 8.0
+	state.difficulty_score = max(5.0, path_len_score + path_threat + side_threat - item_benefits)
+	state.energy = abs(state.difficulty_score - target_difficulty)
+
+func _initialize_random_entities(state: GeneratedMapState, enemy_pool: Array, item_pool: Array) -> void:
+	state.chunk_entities.clear()
+	for cx in range(state.grid_w):
+		for cy in range(state.grid_h):
+			var pos = Vector2i(cx, cy)
+			# Start dan Portal TIDAK BISA memiliki enemy maupun item
+			if pos == state.start_chunk or pos == state.portal_chunk:
+				continue
+				
+			var tpl_id = state.chunk_templates.get(pos, "SOLID")
+			if tpl_id == "SOLID":
+				continue
+				
+			var roll = randf()
+			if roll < 0.50 and not enemy_pool.is_empty():
+				# Spawn Enemy
+				var e = enemy_pool[randi() % enemy_pool.size()]
+				state.chunk_entities[pos] = {
+					"type": "enemy",
+					"node_name": e.node_name,
+					"name": e.name,
+					"threat": e.threat,
+					"tier": e.tier,
+					"hp": e.hp,
+					"atk": e.atk,
+					"benefit": 0.0
+				}
+			elif roll < 0.75 and not item_pool.is_empty():
+				# Spawn Item
+				var it = item_pool[randi() % item_pool.size()]
+				state.chunk_entities[pos] = {
+					"type": "item",
+					"node_name": it.node_name,
+					"name": it.name,
+					"benefit": it.benefit,
+					"item_type": it.type,
+					"threat": 0.0,
+					"tier": "Common",
+					"hp": 0,
+					"atk": 0
+				}
+			else:
+				state.chunk_entities[pos] = { "type": "empty", "threat": 0.0, "benefit": 0.0 }
+
+func _mutate_state(state: GeneratedMapState, enemy_pool: Array, item_pool: Array) -> void:
+	# Pilih satu chunk non-start, non-portal secara acak untuk dimutasi
+	var valid_candidates: Array = []
+	for cx in range(state.grid_w):
+		for cy in range(state.grid_h):
+			var pos = Vector2i(cx, cy)
+			if pos != state.start_chunk and pos != state.portal_chunk:
+				var tpl_id = state.chunk_templates.get(pos, "SOLID")
+				if tpl_id != "SOLID":
+					valid_candidates.append(pos)
+					
+	if valid_candidates.is_empty():
+		return
+		
+	var target_pos = valid_candidates[randi() % valid_candidates.size()]
 	var op = randi() % 4
 	
 	match op:
-		0:
-			# Mutasi 1: Toggle Door Horizontal (buka/tutup lorong barat-timur)
-			var cx = randi() % (GRID_W - 1)
-			var cy = randi() % GRID_H
-			var p1 = Vector2i(cx, cy)
-			var p2 = Vector2i(cx + 1, cy)
-			var c1 = next_state.chunks[p1]
-			if c1.door_east:
-				_close_door_between(next_state, p1, p2)
-			else:
-				_open_door_between(next_state, p1, p2)
-		1:
-			# Mutasi 2: Toggle Door Vertical (buka/tutup lorong utara-selatan)
-			var cx = randi() % GRID_W
-			var cy = randi() % (GRID_H - 1)
-			var p1 = Vector2i(cx, cy)
-			var p2 = Vector2i(cx, cy + 1)
-			var c1 = next_state.chunks[p1]
-			if c1.door_south:
-				_close_door_between(next_state, p1, p2)
-			else:
-				_open_door_between(next_state, p1, p2)
-		2:
-			# Mutasi 3: Toggle Enemy (Munculkan / Hilangkan enemy di satu chunk)
-			var cand: Array = []
-			for pos in next_state.chunks.keys():
-				if pos != next_state.start_chunk and pos != next_state.portal_chunk:
-					cand.append(pos)
-			if not cand.is_empty():
-				var chosen_pos: Vector2i = cand[randi() % cand.size()]
-				var c: ChunkData = next_state.chunks[chosen_pos]
-				if c.has_enemy:
-					c.has_enemy = false
-					c.enemy_threat = 0.0
-				else:
-					_assign_random_enemy(c)
-		3:
-			# Mutasi 4: Ubah Rarity / Role Skeleton di chunk yang ada musuhnya
-			var enemy_chunks: Array = []
-			for pos in next_state.chunks.keys():
-				var c = next_state.chunks[pos]
-				if c.has_enemy:
-					enemy_chunks.append(c)
-			if not enemy_chunks.is_empty():
-				var c: ChunkData = enemy_chunks[randi() % enemy_chunks.size()]
-				_assign_random_enemy(c)
-				
-	return next_state
+		0: # Ubah ke enemy lain (upgrade / downgrade)
+			if not enemy_pool.is_empty():
+				var e = enemy_pool[randi() % enemy_pool.size()]
+				state.chunk_entities[target_pos] = {
+					"type": "enemy",
+					"node_name": e.node_name,
+					"name": e.name,
+					"threat": e.threat,
+					"tier": e.tier,
+					"hp": e.hp,
+					"atk": e.atk,
+					"benefit": 0.0
+				}
+		1: # Pasang item
+			if not item_pool.is_empty():
+				var it = item_pool[randi() % item_pool.size()]
+				state.chunk_entities[target_pos] = {
+					"type": "item",
+					"node_name": it.node_name,
+					"name": it.name,
+					"benefit": it.benefit,
+					"item_type": it.type,
+					"threat": 0.0,
+					"tier": "Common",
+					"hp": 0,
+					"atk": 0
+				}
+		2: # Kosongkan chunk
+			state.chunk_entities[target_pos] = { "type": "empty", "threat": 0.0, "benefit": 0.0 }
+		3: # Tukar isi dengan chunk lain
+			var other_pos = valid_candidates[randi() % valid_candidates.size()]
+			if other_pos != target_pos:
+				var tmp = state.chunk_entities.get(target_pos, { "type": "empty" })
+				state.chunk_entities[target_pos] = state.chunk_entities.get(other_pos, { "type": "empty" })
+				state.chunk_entities[other_pos] = tmp
 
 # =========================================================================
-# ALGORITMA 1: SIMULATED ANNEALING (Slide 14-18)
+# PATHFINDING BFS ANTAR CHUNK (Memvalidasi Reachability Start -> Portal)
 # =========================================================================
-func run_simulated_annealing(
-	target_difficulty: float,
-	max_steps: int = 300,
-	initial_temp: float = 100.0,
-	cooling_rate: float = 0.982
-) -> Dictionary:
-	var current: MazeState = create_initial_state()
-	evaluate_state(current, target_difficulty)
-	var best: MazeState = current.duplicate_state()
+func _find_bfs_path(assignments: Dictionary, tpl_dict: Dictionary, start: Vector2i, goal: Vector2i, gw: int, gh: int) -> Array:
+	if not assignments.has(start) or not assignments.has(goal):
+		return []
+		
+	var queue: Array = [start]
+	var visited: Dictionary = { start: true }
+	var parent: Dictionary = {}
 	
-	var temp: float = initial_temp
-	var history: Array = []
+	var dirs = [
+		{ "vec": Vector2i.UP, "out_idx": 0, "in_idx": 1 },
+		{ "vec": Vector2i.DOWN, "out_idx": 1, "in_idx": 0 },
+		{ "vec": Vector2i.RIGHT, "out_idx": 2, "in_idx": 3 },
+		{ "vec": Vector2i.LEFT, "out_idx": 3, "in_idx": 2 }
+	]
 	
-	for step in range(max_steps):
-		var next_state = generate_neighbour(current)
-		evaluate_state(next_state, target_difficulty)
-		
-		var delta_e = next_state.energy - current.energy
-		var accepted = false
-		
-		if delta_e < 0.0:
-			current = next_state
-			accepted = true
-		else:
-			var prob = exp(-delta_e / max(temp, 0.001))
-			if randf() < prob:
-				current = next_state
-				accepted = true
-				
-		if current.energy < best.energy:
-			best = current.duplicate_state()
+	var found = false
+	while not queue.is_empty():
+		var curr = queue.pop_front()
+		if curr == goal:
+			found = true
+			break
 			
-		temp *= cooling_rate
-		
-		if step % 5 == 0 or step == max_steps - 1:
-			history.append({
-				"step": step,
-				"temp": temp,
-				"current_energy": current.energy,
-				"best_energy": best.energy,
-				"path_threat": current.path_threat,
-				"solvable": current.is_solvable,
-				"accepted": accepted
-			})
+		var curr_tpl = tpl_dict.get(assignments.get(curr, "SOLID"))
+		if curr_tpl == null:
+			continue
 			
-	return {
-		"algorithm": "Simulated Annealing",
-		"best_state": best,
-		"history": history
-	}
+		for d in dirs:
+			if curr_tpl.doors[d.out_idx]: # Pintu terbuka ke arah d
+				var nxt = curr + d.vec
+				if nxt.x >= 0 and nxt.x < gw and nxt.y >= 0 and nxt.y < gh:
+					if not visited.has(nxt):
+						var nxt_tpl = tpl_dict.get(assignments.get(nxt, "SOLID"))
+						if nxt_tpl != null and nxt_tpl.doors[d.in_idx]:
+							visited[nxt] = true
+							parent[nxt] = curr
+							queue.push_back(nxt)
+							
+	if not found:
+		return []
+		
+	var path: Array = []
+	var step = goal
+	while step != start:
+		path.push_front(step)
+		step = parent[step]
+	path.push_front(start)
+	return path
+
+func _build_fallback_connected_layout(state: GeneratedMapState, tpl_dict: Dictionary) -> void:
+	for cx in range(state.grid_w):
+		for cy in range(state.grid_h):
+			var pos = Vector2i(cx, cy)
+			# Fallback ke 4-way dengan penyesuaian border
+			state.chunk_templates[pos] = "4WAY"
 
 # =========================================================================
-# ALGORITMA 2: HILL CLIMBING DENGAN RESTART & SIDEWAYS (Slide 7, 10-13)
+# REACHABILITY CALCULATOR & FULL PIPELINE WITH TIMELINE
 # =========================================================================
-func run_hill_climbing_restart(
-	target_difficulty: float,
-	max_restarts: int = 5,
-	steps_per_restart: int = 60,
-	max_sideways: int = 15
+func get_reachable_chunks(assignments: Dictionary, tpl_dict: Dictionary, start: Vector2i, gw: int, gh: int) -> Dictionary:
+	if not assignments.has(start):
+		return {}
+	var queue: Array = [start]
+	var visited: Dictionary = { start: true }
+	var dirs = [
+		{ "vec": Vector2i.UP, "out_idx": 0, "in_idx": 1 },
+		{ "vec": Vector2i.DOWN, "out_idx": 1, "in_idx": 0 },
+		{ "vec": Vector2i.RIGHT, "out_idx": 2, "in_idx": 3 },
+		{ "vec": Vector2i.LEFT, "out_idx": 3, "in_idx": 2 }
+	]
+	while not queue.is_empty():
+		var curr = queue.pop_front()
+		var curr_tpl = tpl_dict.get(assignments.get(curr, "SOLID"))
+		if curr_tpl == null:
+			continue
+		for d in dirs:
+			if curr_tpl.doors[d.out_idx]:
+				var nxt = curr + d.vec
+				if nxt.x >= 0 and nxt.x < gw and nxt.y >= 0 and nxt.y < gh:
+					if not visited.has(nxt):
+						var nxt_tpl = tpl_dict.get(assignments.get(nxt, "SOLID"))
+						if nxt_tpl != null and nxt_tpl.doors[d.in_idx]:
+							visited[nxt] = true
+							queue.push_back(nxt)
+	return visited
+
+func generate_full_map_with_timeline(
+	var_h: int = 2,
+	val_h: int = 1,
+	inf_m: int = 2,
+	target_diff: float = 80.0,
+	ls_algo: String = "simulated_annealing",
+	max_ls_steps: int = 80
 ) -> Dictionary:
-	var best_overall: MazeState = null
-	var history: Array = []
-	var total_evaluations: int = 0
+	var csp_res = run_csp_chunk_generation(var_h, val_h, inf_m, true, true)
+	var ls_res = run_local_search_optimization(csp_res.map_state, target_diff, ls_algo, max_ls_steps, true)
 	
-	for r in range(max_restarts):
-		var current = create_initial_state()
-		evaluate_state(current, target_difficulty)
-		var sideways_left = max_sideways
+	var timeline: Array = []
+	for s in csp_res.get("steps", []):
+		timeline.append(s)
+	for s in ls_res.get("steps", []):
+		timeline.append(s)
 		
-		for s in range(steps_per_restart):
-			total_evaluations += 1
-			
-			var best_neighbour: MazeState = null
-			for k in range(6):
-				var cand = generate_neighbour(current)
-				evaluate_state(cand, target_difficulty)
-				if best_neighbour == null or cand.energy < best_neighbour.energy:
-					best_neighbour = cand
-					
-			if best_neighbour == null:
-				break
-				
-			var dE = best_neighbour.energy - current.energy
-			if dE < -0.01:
-				current = best_neighbour
-				sideways_left = max_sideways
-			elif abs(dE) <= 0.01 and sideways_left > 0:
-				current = best_neighbour
-				sideways_left -= 1
-			else:
-				break
-				
-			if best_overall == null or current.energy < best_overall.energy:
-				best_overall = current.duplicate_state()
-				
-			if s % 5 == 0 or s == steps_per_restart - 1:
-				history.append({
-					"step": total_evaluations,
-					"restart": r + 1,
-					"current_energy": current.energy,
-					"best_energy": best_overall.energy,
-					"path_threat": current.path_threat,
-					"solvable": current.is_solvable,
-					"accepted": true
-				})
-				
-		if best_overall == null or current.energy < best_overall.energy:
-			best_overall = current.duplicate_state()
-			
 	return {
-		"algorithm": "Hill Climbing (Random Restart)",
-		"best_state": best_overall,
-		"history": history
+		"csp_res": csp_res,
+		"ls_res": ls_res,
+		"final_state": ls_res.best_state,
+		"timeline": timeline
 	}
+
+func _generate_spine_path(start: Vector2i, goal: Vector2i, gw: int, gh: int) -> Array:
+	var curr = start
+	var path: Array = [curr]
+	var visited: Dictionary = { curr: true }
+	var max_attempts = 40
+	var attempts = 0
+	
+	while curr != goal and attempts < max_attempts:
+		attempts += 1
+		var nbs: Array = []
+		for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var nb = curr + dir
+			if nb.x >= 0 and nb.x < gw and nb.y >= 0 and nb.y < gh and not visited.has(nb):
+				nbs.append(nb)
+		if nbs.is_empty():
+			return _generate_spine_path(start, goal, gw, gh)
+			
+		nbs.shuffle()
+		nbs.sort_custom(func(a, b):
+			var da = abs(a.x - goal.x) + abs(a.y - goal.y)
+			var db = abs(b.x - goal.x) + abs(b.y - goal.y)
+			return da < db
+		)
+		curr = nbs[0]
+		path.append(curr)
+		visited[curr] = true
+		
+	return path
