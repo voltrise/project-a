@@ -22,8 +22,8 @@
 [ext_resource type="Texture2D" uid="uid://ce63q6c5272qv" path="res://assets/Tiny Swords (Free Pack)/Enemies/Goblin Raiders/Spear Goblin/Spear Goblin_Attack Fast.png" id="18_spear_atk"]
 [ext_resource type="Texture2D" uid="uid://chor4ehvf13vp" path="res://assets/Tiny Swords (Free Pack)/Terrain/Resources/Meat/Meat Resource/Meat Resource.png" id="19_meat_tex"]
 [ext_resource type="Texture2D" uid="uid://dmwuywfu3x3aa" path="res://assets/Tiny Swords (Free Pack)/Terrain/Resources/Gold/Gold Resource/Gold_Resource.png" id="20_gold_tex"]
-[ext_resource type="Texture2D" uid="uid://dycy7xnvo1it2" path="res://assets/Tiny Swords (Free Pack)/Terrain/Resources/Gold/Gold Resource/Gold_Resource_Highlight.png" id="21_chest_tex"]
 [ext_resource type="Texture2D" uid="uid://ckoovxu7ar5wi" path="res://assets/Greyscale Portal-Spinning scaled.png" id="22_portal_tex"]
+[ext_resource type="Texture2D" uid="uid://dft4xo1ubo23v" path="res://assets/Tiny Swords (Free Pack)/Terrain/Resources/Tools/Tool_02.png" id="22_q05bw"]
 
 [sub_resource type="TileMapPattern" id="TileMapPattern_2f2b3"]
 tile_data = PackedInt32Array(0, 2, 0)
@@ -708,7 +708,6 @@ item_type = "Food / Heal"
 
 [node name="Sprite2D" type="Sprite2D" parent="Items/Meat" unique_id=1168010698]
 texture_filter = 1
-scale = Vector2(0.65, 0.65)
 texture = ExtResource("19_meat_tex")
 
 [node name="Gold" type="Node2D" parent="Items" unique_id=140994641]
@@ -720,21 +719,18 @@ benefit_value = 15.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Items/Gold" unique_id=2040807349]
 texture_filter = 1
-scale = Vector2(0.45, 0.45)
 texture = ExtResource("20_gold_tex")
 
-[node name="Chest" type="Node2D" parent="Items" unique_id=1806961306]
+[node name="Axe" type="Node2D" parent="Items" unique_id=1806961306]
 position = Vector2(314, -4)
 script = ExtResource("5_item_script")
-item_name = "Relic Chest"
-item_type = "Treasure Chest"
+item_name = "Steel Axe"
+item_type = "Damage Boost"
 benefit_value = 35.0
 
-[node name="Sprite2D" type="Sprite2D" parent="Items/Chest" unique_id=53593676]
+[node name="Sprite2D" type="Sprite2D" parent="Items/Axe" unique_id=53593676]
 texture_filter = 1
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("21_chest_tex")
-hframes = 6
+texture = ExtResource("22_q05bw")
 
 [node name="Portal" type="Node2D" parent="." unique_id=1248242774]
 position = Vector2(105, -133)

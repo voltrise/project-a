@@ -14,6 +14,12 @@
 [ext_resource type="Texture2D" uid="uid://bc5xhbal0s0jq" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/TileSet.png" id="13_qi1r2"]
 [ext_resource type="Texture2D" uid="uid://m3ima5b5ihlh" path="res://assets/Tiny Swords (Free Pack)/Terrain/Resources/Wood/Trees/Tree4.png" id="16_6tgno"]
 [ext_resource type="AudioStream" uid="uid://bh7wikglg1b6j" path="res://audio/bgm/calm_bgm.wav" id="21_tf1ga"]
+[ext_resource type="Texture2D" uid="uid://braw042gmk0yf" path="res://assets/Tiny Swords (Free Pack)/Terrain/Decorations/Bushes/Bushe4.png" id="22_bushe4"]
+[ext_resource type="Texture2D" uid="uid://0coj2ofs6k0x" path="res://assets/Tiny Swords (Free Pack)/Terrain/Decorations/Rocks in the Water/Water Rocks_03.png" id="23_wrocks03"]
+[ext_resource type="Texture2D" uid="uid://behw6005ctpaf" path="res://assets/Tiny Swords (Free Pack)/Terrain/Decorations/Rocks in the Water/Water Rocks_04.png" id="24_wrocks04"]
+[ext_resource type="Texture2D" uid="uid://wehf4r11205l" path="res://assets/Tiny Swords (Free Pack)/Terrain/Decorations/Rubber Duck/Rubber duck.png" id="25_rduck"]
+[ext_resource type="Texture2D" uid="uid://dnso06io4daav" path="res://assets/Tiny Swords (Free Pack)/Terrain/Decorations/Bushes/Bushe1.png" id="26_bushe1"]
+[ext_resource type="Texture2D" uid="uid://brl6asq8kjrv1" path="res://assets/Tiny Swords (Free Pack)/Terrain/Decorations/Rocks/Rock4.png" id="27_rock4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8nokx"]
 size = Vector2(2, 2)
@@ -126,11 +132,8 @@ texture_region_size = Vector2i(192, 192)
 0:0/0 = 0
 0:0/0/modulate = Color(1.6017902, 1.9284817, 4.8687005, 1)
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ifhio"]
-load_path = "res://.godot/imported/Bushe4.png-c67eee32199d1a3e7634e1658f6490c6.ctex"
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_15osf"]
-texture = SubResource("CompressedTexture2D_ifhio")
+texture = ExtResource("22_bushe4")
 margins = Vector2i(32, 28)
 texture_region_size = Vector2i(64, 64)
 0:0/animation_columns = 8
@@ -163,11 +166,8 @@ texture_region_size = Vector2i(192, 192)
 0:0/0 = 0
 0:0/0/texture_origin = Vector2i(-32, -24)
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_23x62"]
-load_path = "res://.godot/imported/Water Rocks_03.png-f5e6e4bb979ddb4258c6028ea7ff0479.ctex"
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_osbja"]
-texture = SubResource("CompressedTexture2D_23x62")
+texture = ExtResource("23_wrocks03")
 texture_region_size = Vector2i(64, 64)
 0:0/animation_columns = 16
 0:0/animation_speed = 10.0
@@ -189,12 +189,9 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_14/duration = 1.0
 0:0/animation_frame_15/duration = 1.0
 0:0/0 = 0
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_lsek0"]
-load_path = "res://.godot/imported/Water Rocks_04.png-63750c125343b0821a6d6676646c2966.ctex"
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hnc75"]
-texture = SubResource("CompressedTexture2D_lsek0")
+texture = ExtResource("24_wrocks04")
 texture_region_size = Vector2i(64, 64)
 0:0/animation_columns = 16
 0:0/animation_speed = 10.0
@@ -217,11 +214,8 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_15/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t184y"]
-load_path = "res://.godot/imported/Rubber duck.png-706663584c4886c386bf5efb45698f88.ctex"
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sytke"]
-texture = SubResource("CompressedTexture2D_t184y")
+texture = ExtResource("25_rduck")
 texture_region_size = Vector2i(32, 32)
 0:0/animation_speed = 5.0
 0:0/animation_frame_0/duration = 1.0
@@ -229,11 +223,8 @@ texture_region_size = Vector2i(32, 32)
 0:0/animation_frame_2/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_n8bsm"]
-load_path = "res://.godot/imported/Bushe1.png-82dbb20b4f32f8118be24626a7108e1f.ctex"
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tjibn"]
-texture = SubResource("CompressedTexture2D_n8bsm")
+texture = ExtResource("26_bushe1")
 margins = Vector2i(32, 24)
 texture_region_size = Vector2i(64, 64)
 0:0/animation_columns = 8
@@ -250,11 +241,8 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_7/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_p36wi"]
-load_path = "res://.godot/imported/Rock4.png-5919b52734c38c51576381affe5c62b9.ctex"
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fma3b"]
-texture = SubResource("CompressedTexture2D_p36wi")
+texture = ExtResource("27_rock4")
 texture_region_size = Vector2i(64, 64)
 0:0/0 = 0
 
