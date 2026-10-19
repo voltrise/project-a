@@ -116,7 +116,7 @@ tile_data = PackedInt32Array(0, 5, 0)
 [sub_resource type="TileMapPattern" id="TileMapPattern_euada"]
 tile_data = PackedInt32Array(0, 2, 0)
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rtyvf"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kbkwj"]
 texture = ExtResource("6_portal_tex")
 texture_region_size = Vector2i(192, 192)
 0:0/animation_columns = 8
@@ -132,7 +132,7 @@ texture_region_size = Vector2i(192, 192)
 0:0/0 = 0
 0:0/0/modulate = Color(1.6017902, 1.9284817, 4.8687005, 1)
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_15osf"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3ga8k"]
 texture = ExtResource("22_bushe4")
 margins = Vector2i(32, 28)
 texture_region_size = Vector2i(64, 64)
@@ -149,7 +149,7 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_7/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8erw6"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_soyt4"]
 texture = ExtResource("16_6tgno")
 texture_region_size = Vector2i(192, 192)
 0:0/animation_columns = 8
@@ -166,7 +166,7 @@ texture_region_size = Vector2i(192, 192)
 0:0/0 = 0
 0:0/0/texture_origin = Vector2i(-32, -24)
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_osbja"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1m6dg"]
 texture = ExtResource("23_wrocks03")
 texture_region_size = Vector2i(64, 64)
 0:0/animation_columns = 16
@@ -190,7 +190,7 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_15/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hnc75"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_owijo"]
 texture = ExtResource("24_wrocks04")
 texture_region_size = Vector2i(64, 64)
 0:0/animation_columns = 16
@@ -214,7 +214,7 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_15/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sytke"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_d3iw2"]
 texture = ExtResource("25_rduck")
 texture_region_size = Vector2i(32, 32)
 0:0/animation_speed = 5.0
@@ -223,7 +223,7 @@ texture_region_size = Vector2i(32, 32)
 0:0/animation_frame_2/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_tjibn"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bguar"]
 texture = ExtResource("26_bushe1")
 margins = Vector2i(32, 24)
 texture_region_size = Vector2i(64, 64)
@@ -241,21 +241,21 @@ texture_region_size = Vector2i(64, 64)
 0:0/animation_frame_7/duration = 1.0
 0:0/0 = 0
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fma3b"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_p1oxs"]
 texture = ExtResource("27_rock4")
 texture_region_size = Vector2i(64, 64)
 0:0/0 = 0
 
-[sub_resource type="TileSet" id="TileSet_w8pnh"]
+[sub_resource type="TileSet" id="TileSet_ccyyg"]
 tile_size = Vector2i(64, 64)
-sources/4 = SubResource("TileSetAtlasSource_osbja")
-sources/5 = SubResource("TileSetAtlasSource_hnc75")
-sources/6 = SubResource("TileSetAtlasSource_sytke")
-sources/1 = SubResource("TileSetAtlasSource_15osf")
-sources/8 = SubResource("TileSetAtlasSource_tjibn")
-sources/9 = SubResource("TileSetAtlasSource_fma3b")
-sources/2 = SubResource("TileSetAtlasSource_8erw6")
-sources/0 = SubResource("TileSetAtlasSource_rtyvf")
+sources/4 = SubResource("TileSetAtlasSource_1m6dg")
+sources/5 = SubResource("TileSetAtlasSource_owijo")
+sources/6 = SubResource("TileSetAtlasSource_d3iw2")
+sources/1 = SubResource("TileSetAtlasSource_3ga8k")
+sources/8 = SubResource("TileSetAtlasSource_bguar")
+sources/9 = SubResource("TileSetAtlasSource_p1oxs")
+sources/2 = SubResource("TileSetAtlasSource_soyt4")
+sources/0 = SubResource("TileSetAtlasSource_kbkwj")
 pattern_0 = SubResource("TileMapPattern_pybn6")
 pattern_1 = SubResource("TileMapPattern_cfmyv")
 pattern_2 = SubResource("TileMapPattern_uwgmg")
@@ -324,10 +324,10 @@ tile_set = ExtResource("3_ground_ts")
 texture_filter = 1
 tile_set = SubResource("TileSet_80e10")
 
-[node name="Decoration" type="TileMapLayer" parent="Visuals" unique_id=1262449923]
+[node name="Decoration" type="TileMapLayer" parent="Visuals" unique_id=1566011513]
 z_index = 2
 texture_filter = 1
-tile_set = SubResource("TileSet_w8pnh")
+tile_set = SubResource("TileSet_ccyyg")
 
 [node name="Path" type="TileMapLayer" parent="." unique_id=1564450533]
 z_index = 1
