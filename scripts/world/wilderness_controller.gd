@@ -55,6 +55,21 @@ var btn_restart: Button = null
 var btn_overworld: Button = null
 var is_event_busy: bool = false
 
+# Debug Menu & Overlay Widgets
+var debug_menu_panel: PanelContainer = null
+var debug_grid_overlay: Node2D = null
+var chk_debug_optimal_path: CheckBox = null
+var chk_debug_grid: CheckBox = null
+var chk_debug_skip_battle: CheckBox = null
+var chk_debug_ai_stats: CheckBox = null
+var btn_debug_toggle: Button = null
+var debug_ai_stats_card: PanelContainer = null
+var lbl_debug_ai_stats_content: RichTextLabel = null
+var teleport_modal_panel: PanelContainer = null
+var teleport_canvas: Control = null
+var last_csp_stats: Dictionary = {}
+var last_ls_stats: Dictionary = {}
+
 # Visualizer State & Widgets
 var visualizer_canvas: Control = null
 var lbl_vis_title: Label = null
@@ -186,6 +201,14 @@ func _ensure_runtime_nodes() -> void:
 		path_line.default_color = Color(0.2, 0.85, 0.4, 0.7)
 		path_line.z_index = 4
 		add_child(path_line)
+	
+	if debug_grid_overlay == null:
+		debug_grid_overlay = Node2D.new()
+		debug_grid_overlay.name = "DebugGridOverlay"
+		debug_grid_overlay.z_index = 6
+		debug_grid_overlay.visible = false
+		debug_grid_overlay.draw.connect(_on_draw_debug_grid_overlay)
+		add_child(debug_grid_overlay)
 
 # =========================================================================
 # SISTEM UI (START SCREEN, CONFIG DIALOG, GRAPH VISUALIZER, INGAME HUD)
@@ -199,6 +222,8 @@ func _build_ui() -> void:
 	_build_config_dialog()
 	_build_graph_visualizer()
 	_build_ingame_hud()
+	_build_debug_menu()
+	_build_teleport_modal()
 
 func _show_screen_state(state: String) -> void:
 	if start_screen_panel: start_screen_panel.visible = (state == "START")
@@ -558,10 +583,11 @@ func _build_graph_visualizer() -> void:
 	bot_hbox.add_child(btn_enter_game)
 
 # --- 4. IN-GAME HUD (Playable Section) ---
+# Tampilan UI secara default ketika main: Healthbar, Active Item, Return Overworld, dan Tombol Toggle Debug Menu
 func _build_ingame_hud() -> void:
 	ingame_hud_panel = PanelContainer.new()
 	ingame_hud_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	ingame_hud_panel.custom_minimum_size = Vector2(0, 84)
+	ingame_hud_panel.custom_minimum_size = Vector2(0, 52)
 	
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.08, 0.11, 0.16, 0.94)
@@ -573,70 +599,34 @@ func _build_ingame_hud() -> void:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 16)
 	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_bottom", 6)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	ingame_hud_panel.add_child(margin)
 	
-	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 6)
-	margin.add_child(main_vbox)
+	var h_row := HBoxContainer.new()
+	h_row.add_theme_constant_override("separation", 14)
+	h_row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	margin.add_child(h_row)
 	
-	# Baris 1: Info Room, Threat / Solvable Stats, Restart & Overworld buttons
-	var row1 := HBoxContainer.new()
-	row1.add_theme_constant_override("separation", 14)
-	main_vbox.add_child(row1)
-	
-	lbl_current_room = Label.new()
-	lbl_current_room.text = "Room [0, 0] 🟢 Start"
-	lbl_current_room.custom_minimum_size = Vector2(180, 0)
-	lbl_current_room.add_theme_font_size_override("font_size", 13)
-	lbl_current_room.add_theme_color_override("font_color", Color("#FBBF24"))
-	row1.add_child(lbl_current_room)
-	
-	row1.add_child(VSeparator.new())
-	
-	lbl_hud_stats = Label.new()
-	lbl_hud_stats.text = "Threat: 80 / 80 | Solvable: Yes | Path: 6 Rooms"
-	lbl_hud_stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_hud_stats.add_theme_font_size_override("font_size", 12)
-	lbl_hud_stats.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
-	row1.add_child(lbl_hud_stats)
-	
-	btn_restart = Button.new()
-	btn_restart.text = "🔄 Restart Run"
-	btn_restart.custom_minimum_size = Vector2(110, 30)
-	btn_restart.add_theme_color_override("font_color", Color("#F87171"))
-	btn_restart.pressed.connect(func():
-		var wm = _get_wm()
-		if wm:
-			wm.clear_session()
-		get_tree().reload_current_scene()
-	)
-	row1.add_child(btn_restart)
-	
-	btn_overworld = Button.new()
-	btn_overworld.text = "🏠 Overworld"
-	btn_overworld.custom_minimum_size = Vector2(95, 30)
-	btn_overworld.pressed.connect(_return_to_overworld)
-	row1.add_child(btn_overworld)
-	
-	# Baris 2: Kondisi Player Saat Ini (Current HP Bar & Active Item Buffs)
-	var row2 := HBoxContainer.new()
-	row2.add_theme_constant_override("separation", 12)
-	main_vbox.add_child(row2)
+	# 1. Player Health Bar Container (Vertically Aligned)
+	var hp_box := HBoxContainer.new()
+	hp_box.add_theme_constant_override("separation", 8)
+	hp_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h_row.add_child(hp_box)
 	
 	var hp_title := Label.new()
 	hp_title.text = "💖 Player HP:"
 	hp_title.add_theme_font_size_override("font_size", 12)
 	hp_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.6))
-	row2.add_child(hp_title)
+	hp_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hp_box.add_child(hp_title)
 	
 	var init_max_hp: int = 500
 	if has_node("/root/WildernessManager"):
 		var wm_init = get_node("/root/WildernessManager")
 		init_max_hp = wm_init.get("player_max_hp")
 	hp_bar = ProgressBar.new()
-	hp_bar.custom_minimum_size = Vector2(160, 18)
+	hp_bar.custom_minimum_size = Vector2(160, 20)
 	hp_bar.min_value = 0
 	hp_bar.max_value = init_max_hp
 	hp_bar.value = init_max_hp
@@ -649,26 +639,65 @@ func _build_ingame_hud() -> void:
 	bg_sb.bg_color = Color(0.15, 0.18, 0.25, 0.9)
 	bg_sb.set_corner_radius_all(4)
 	hp_bar.add_theme_stylebox_override("background", bg_sb)
-	row2.add_child(hp_bar)
+	hp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hp_box.add_child(hp_bar)
 	
 	lbl_player_hp = Label.new()
 	lbl_player_hp.text = "%d / %d" % [init_max_hp, init_max_hp]
 	lbl_player_hp.custom_minimum_size = Vector2(75, 0)
 	lbl_player_hp.add_theme_font_size_override("font_size", 12)
 	lbl_player_hp.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
-	row2.add_child(lbl_player_hp)
+	lbl_player_hp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hp_box.add_child(lbl_player_hp)
 	
-	row2.add_child(VSeparator.new())
+	var vsep := VSeparator.new()
+	vsep.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h_row.add_child(vsep)
+	
+	# 2. Efek Item Aktif Container (Vertically Aligned)
+	var buff_container := HBoxContainer.new()
+	buff_container.add_theme_constant_override("separation", 8)
+	buff_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h_row.add_child(buff_container)
 	
 	var buff_title := Label.new()
 	buff_title.text = "Efek Item Aktif:"
 	buff_title.add_theme_font_size_override("font_size", 12)
 	buff_title.add_theme_color_override("font_color", Color(0.85, 0.9, 0.98))
-	row2.add_child(buff_title)
+	buff_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	buff_container.add_child(buff_title)
 	
 	buffs_box = HBoxContainer.new()
 	buffs_box.add_theme_constant_override("separation", 6)
-	row2.add_child(buffs_box)
+	buffs_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	buff_container.add_child(buffs_box)
+	
+	# Spacer
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h_row.add_child(spacer)
+	
+	# 3. Tombol Toggle Debug Menu (F3)
+	btn_debug_toggle = Button.new()
+	btn_debug_toggle.text = "🛠️ Debug (F3)"
+	btn_debug_toggle.custom_minimum_size = Vector2(115, 32)
+	var dt_sb := StyleBoxFlat.new()
+	dt_sb.bg_color = Color(0.12, 0.22, 0.35, 0.95)
+	dt_sb.border_color = Color(0.3, 0.6, 0.9, 0.9)
+	dt_sb.set_border_width_all(1)
+	dt_sb.set_corner_radius_all(6)
+	btn_debug_toggle.add_theme_stylebox_override("normal", dt_sb)
+	btn_debug_toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn_debug_toggle.pressed.connect(_toggle_debug_menu)
+	h_row.add_child(btn_debug_toggle)
+	
+	# 4. Return ke Overworld
+	btn_overworld = Button.new()
+	btn_overworld.text = "🏠 Overworld"
+	btn_overworld.custom_minimum_size = Vector2(95, 32)
+	btn_overworld.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn_overworld.pressed.connect(_return_to_overworld)
+	h_row.add_child(btn_overworld)
 	
 
 func _update_player_status_hud() -> void:
@@ -722,13 +751,578 @@ func _create_hud_buff_pill(title: String, duration: int, col: Color) -> void:
 	sb.content_margin_left = 6
 	sb.content_margin_right = 6
 	p.add_theme_stylebox_override("panel", sb)
+	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
 	var l := Label.new()
 	l.text = "%s [%d Battle]" % [title, duration]
 	l.add_theme_font_size_override("font_size", 11)
 	l.add_theme_color_override("font_color", col)
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	p.add_child(l)
-	buffs_box.add_child(p)
+	
+	if buffs_box:
+		buffs_box.add_child(p)
+
+
+# =========================================================================
+# TOGGLEABLE DEBUG MENU & OVERLAYS (F3 / BUTTON)
+# =========================================================================
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F3:
+			_toggle_debug_menu()
+
+func _toggle_debug_menu() -> void:
+	if debug_menu_panel:
+		debug_menu_panel.visible = not debug_menu_panel.visible
+		if debug_menu_panel.visible:
+			_update_room_hud()
+			_update_debug_ai_stats()
+
+func _build_debug_menu() -> void:
+	debug_menu_panel = PanelContainer.new()
+	debug_menu_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	debug_menu_panel.offset_top = 60.0
+	debug_menu_panel.offset_right = -16.0
+	debug_menu_panel.offset_left = -400.0
+	debug_menu_panel.custom_minimum_size = Vector2(384, 0)
+	debug_menu_panel.z_index = 40
+	debug_menu_panel.visible = false
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.08, 0.13, 0.96)
+	sb.border_color = Color(0.28, 0.52, 0.85, 0.9)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(14)
+	debug_menu_panel.add_theme_stylebox_override("panel", sb)
+	ui_layer.add_child(debug_menu_panel)
+	
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 480)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	debug_menu_panel.add_child(scroll)
+	
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 10)
+	scroll.add_child(vbox)
+	
+	# Header Bar
+	var head_box := HBoxContainer.new()
+	vbox.add_child(head_box)
+	
+	var title_lbl := Label.new()
+	title_lbl.text = "🛠️ WILDERNESS DEBUG MENU"
+	title_lbl.add_theme_font_size_override("font_size", 14)
+	title_lbl.add_theme_color_override("font_color", Color("#FBBF24"))
+	head_box.add_child(title_lbl)
+	
+	var h_spacer := Control.new()
+	h_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head_box.add_child(h_spacer)
+	
+	var btn_close_dbg := Button.new()
+	btn_close_dbg.text = " ✕ "
+	btn_close_dbg.custom_minimum_size = Vector2(28, 24)
+	btn_close_dbg.pressed.connect(func(): debug_menu_panel.visible = false)
+	head_box.add_child(btn_close_dbg)
+	
+	# Lokasi Ruangan Sekarang
+	lbl_current_room = Label.new()
+	lbl_current_room.text = "📍 Room [0, 0] 🟢 Start"
+	lbl_current_room.add_theme_font_size_override("font_size", 12)
+	lbl_current_room.add_theme_color_override("font_color", Color("#60A5FA"))
+	vbox.add_child(lbl_current_room)
+	
+	vbox.add_child(HSeparator.new())
+	
+	# SECTION 1: MAP & PATH OVERLAYS
+	var sec1_lbl := Label.new()
+	sec1_lbl.text = "👁️ MAP & PATH OVERLAYS"
+	sec1_lbl.add_theme_font_size_override("font_size", 12)
+	sec1_lbl.add_theme_color_override("font_color", Color(0.35, 0.9, 1.0))
+	vbox.add_child(sec1_lbl)
+	
+	# 1.1 Checkbox Optimal Path
+	chk_debug_optimal_path = CheckBox.new()
+	chk_debug_optimal_path.text = "Show Optimal Path"
+	chk_debug_optimal_path.button_pressed = true
+	chk_debug_optimal_path.toggled.connect(func(on: bool):
+		if path_line:
+			path_line.visible = on
+	)
+	vbox.add_child(chk_debug_optimal_path)
+	
+	# 1.2, 1.3, 1.4 Checkbox Chunk Grid & Coordinates
+	chk_debug_grid = CheckBox.new()
+	chk_debug_grid.text = "Show Chunk Grid & Coordinates"
+	chk_debug_grid.button_pressed = false
+	chk_debug_grid.toggled.connect(func(on: bool):
+		if debug_grid_overlay:
+			debug_grid_overlay.visible = on
+			if on:
+				debug_grid_overlay.queue_redraw()
+	)
+	vbox.add_child(chk_debug_grid)
+	
+	# 2.2, 2.3 Checkbox AI Search Stats Panel
+	chk_debug_ai_stats = CheckBox.new()
+	chk_debug_ai_stats.text = "Show AI Search Stats Panel"
+	chk_debug_ai_stats.button_pressed = false
+	chk_debug_ai_stats.toggled.connect(func(on: bool):
+		if debug_ai_stats_card:
+			debug_ai_stats_card.visible = on
+			if on:
+				_update_debug_ai_stats()
+	)
+	vbox.add_child(chk_debug_ai_stats)
+	
+	# AI Stats Card (Consistent font size, no emojis, clean layout)
+	debug_ai_stats_card = PanelContainer.new()
+	var ai_sb := StyleBoxFlat.new()
+	ai_sb.bg_color = Color(0.04, 0.06, 0.09, 0.95)
+	ai_sb.border_color = Color(0.2, 0.35, 0.5, 0.7)
+	ai_sb.set_border_width_all(1)
+	ai_sb.set_corner_radius_all(6)
+	ai_sb.set_content_margin_all(10)
+	debug_ai_stats_card.add_theme_stylebox_override("panel", ai_sb)
+	debug_ai_stats_card.visible = false
+	vbox.add_child(debug_ai_stats_card)
+	
+	lbl_debug_ai_stats_content = RichTextLabel.new()
+	lbl_debug_ai_stats_content.bbcode_enabled = true
+	lbl_debug_ai_stats_content.fit_content = true
+	lbl_debug_ai_stats_content.custom_minimum_size = Vector2(0, 240)
+	lbl_debug_ai_stats_content.add_theme_font_size_override("normal_font_size", 11)
+	lbl_debug_ai_stats_content.add_theme_font_size_override("bold_font_size", 11)
+	lbl_debug_ai_stats_content.add_theme_font_size_override("italics_font_size", 11)
+	lbl_debug_ai_stats_content.add_theme_font_size_override("bold_italics_font_size", 11)
+	lbl_debug_ai_stats_content.add_theme_font_size_override("mono_font_size", 11)
+	debug_ai_stats_card.add_child(lbl_debug_ai_stats_content)
+	
+	vbox.add_child(HSeparator.new())
+	
+	# SECTION 2: TESTING & SANDBOX TOOLS
+	var sec2_lbl := Label.new()
+	sec2_lbl.text = "SANDBOX / TESTING TOOLS"
+	sec2_lbl.add_theme_font_size_override("font_size", 12)
+	sec2_lbl.add_theme_color_override("font_color", Color(0.9, 0.5, 1.0))
+	vbox.add_child(sec2_lbl)
+	
+	# Checkbox Skip Battle
+	chk_debug_skip_battle = CheckBox.new()
+	chk_debug_skip_battle.text = "Skip Battle"
+	chk_debug_skip_battle.button_pressed = false
+	vbox.add_child(chk_debug_skip_battle)
+	
+	# Subpoin 1: Chunk Teleport Button
+	var btn_dbg_teleport := Button.new()
+	btn_dbg_teleport.text = "Teleport to Chunk..."
+	btn_dbg_teleport.custom_minimum_size = Vector2(0, 32)
+	btn_dbg_teleport.pressed.connect(func():
+		_show_teleport_modal(true)
+	)
+	vbox.add_child(btn_dbg_teleport)
+	
+	# Subpoin 3: Instant Heal Button
+	var btn_dbg_heal := Button.new()
+	btn_dbg_heal.text = "💖 Instant Heal (100% HP)"
+	btn_dbg_heal.custom_minimum_size = Vector2(0, 32)
+	var heal_sb := StyleBoxFlat.new()
+	heal_sb.bg_color = Color(0.12, 0.32, 0.22, 0.9)
+	heal_sb.border_color = Color(0.2, 0.8, 0.4, 0.9)
+	heal_sb.set_border_width_all(1)
+	heal_sb.set_corner_radius_all(6)
+	btn_dbg_heal.add_theme_stylebox_override("normal", heal_sb)
+	btn_dbg_heal.pressed.connect(_instant_heal_player)
+	vbox.add_child(btn_dbg_heal)
+	
+	# Restart Run Button (dipindahkan ke debug menu)
+	btn_restart = Button.new()
+	btn_restart.text = "🔄 Restart Run"
+	btn_restart.custom_minimum_size = Vector2(0, 32)
+	var rst_sb := StyleBoxFlat.new()
+	rst_sb.bg_color = Color(0.32, 0.12, 0.15, 0.9)
+	rst_sb.border_color = Color(0.85, 0.3, 0.35, 0.9)
+	rst_sb.set_border_width_all(1)
+	rst_sb.set_corner_radius_all(6)
+	btn_restart.add_theme_stylebox_override("normal", rst_sb)
+	btn_restart.pressed.connect(func():
+		var wm = _get_wm()
+		if wm:
+			wm.clear_session()
+		get_tree().reload_current_scene()
+	)
+	vbox.add_child(btn_restart)
+
+func _instant_heal_player() -> void:
+	var wm = _get_wm()
+	var max_hp = 500
+	if wm:
+		max_hp = wm.get("player_max_hp")
+		wm.player_hp = max_hp
+	if hp_bar:
+		hp_bar.value = max_hp
+	if lbl_player_hp:
+		lbl_player_hp.text = "%d / %d" % [max_hp, max_hp]
+	if player_node:
+		_spawn_floating_text(player_node.global_position, "💚 FULL HEAL! (%d HP)" % max_hp, Color(0.3, 1.0, 0.4))
+
+func _update_debug_ai_stats() -> void:
+	if lbl_debug_ai_stats_content == null or current_map_state == null:
+		return
+	var path_len = current_map_state.chunk_path.size()
+	var path_score = float(path_len) * 8.0
+	var path_threat: float = 0.0
+	var side_threat: float = 0.0
+	var item_benefits: float = 0.0
+	var path_set: Dictionary = {}
+	for cp in current_map_state.chunk_path:
+		path_set[cp] = true
+		
+	var enemy_count = 0
+	var item_count = 0
+	for pos in current_map_state.chunk_entities.keys():
+		var ent = current_map_state.chunk_entities[pos]
+		if ent.type == "enemy":
+			enemy_count += 1
+			if path_set.has(pos):
+				path_threat += ent.threat
+			else:
+				side_threat += ent.threat * 0.35
+		elif ent.type == "item":
+			item_count += 1
+			if path_set.has(pos):
+				item_benefits += ent.benefit
+			else:
+				item_benefits += ent.benefit * 0.5
+				
+	var target_diff = get_target_difficulty()
+	var curr_diff = current_map_state.difficulty_score
+	var energy = abs(curr_diff - target_diff)
+	
+	var csp_time = last_csp_stats.get("time_ms", 0.0)
+	var backtracks = last_csp_stats.get("backtracks_count", 0)
+	var prunes = last_csp_stats.get("ac3_prunes", 0)
+	var ls_algo = last_ls_stats.get("algorithm", "simulated_annealing")
+	var is_solv = "YES" if current_map_state.is_solvable else "NO"
+	
+	var solv_col = "#30d158" if current_map_state.is_solvable else "#ff453a"
+	var energy_col = "#30d158" if energy <= 2.0 else ("#ffd60a" if energy <= 5.0 else "#ff453a")
+	
+	var text := ""
+	text += "[b][color=#64d2ff]FORMULA KESULITAN (OBJECTIVE FUNCTION)[/color][/b]
+"
+	text += "• Panjang Rute BFS (%d rooms x 8): [b][color=#30d158]+%.1f[/color][/b]
+" % [path_len, path_score]
+	text += "• Threat Jalur Utama: [b][color=#ff453a]+%.1f[/color][/b]
+" % path_threat
+	text += "• Threat Jalur Samping (x0.35): [b][color=#ff9f0a]+%.1f[/color][/b]
+" % side_threat
+	text += "• Bantuan Item: [b][color=#32d74b]-%.1f[/color][/b]
+" % item_benefits
+	text += "[color=#48484a]----------------------------------------[/color]
+"
+	text += "Difficulty Score: [b][color=#ffd60a]%.1f[/color][/b] (Target: [b][color=#8e8e93]%.1f[/color][/b])
+" % [curr_diff, target_diff]
+	text += "Residual Energy: [b][color=%s]%.1f[/color][/b]
+
+" % [energy_col, energy]
+	
+	text += "[b][color=#bf5af2]STATISTIK ALGORITMA (CSP & LOCAL SEARCH)[/color][/b]
+"
+	text += "• Waktu Eksekusi CSP: [b][color=#64d2ff]%.2f ms[/color][/b]
+" % csp_time
+	text += "• Jumlah Backtrack: [b][color=#ff9f0a]%d[/color][/b]
+" % backtracks
+	text += "• Pangkasan Busur AC-3: [b][color=#64d2ff]%d prunes[/color][/b]
+" % prunes
+	text += "• Algoritma Local Search: [b][color=#bf5af2]%s[/color][/b]
+" % ls_algo.replace("_", " ").capitalize()
+	text += "• Solvable (Start ke Exit): [b][color=%s]%s[/color][/b]
+" % [solv_col, is_solv]
+	text += "• Total Musuh: [b][color=#ff453a]%d[/color][/b] | Total Item: [b][color=#30d158]%d[/color][/b]
+" % [enemy_count, item_count]
+	
+	lbl_debug_ai_stats_content.text = text
+
+# --- Overview Node Modal for Chunk Teleport ---
+func _build_teleport_modal() -> void:
+	teleport_modal_panel = PanelContainer.new()
+	teleport_modal_panel.set_anchors_preset(Control.PRESET_CENTER)
+	teleport_modal_panel.custom_minimum_size = Vector2(620, 520)
+	teleport_modal_panel.offset_left = -310.0
+	teleport_modal_panel.offset_top = -260.0
+	teleport_modal_panel.offset_right = 310.0
+	teleport_modal_panel.offset_bottom = 260.0
+	teleport_modal_panel.z_index = 80
+	teleport_modal_panel.visible = false
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.08, 0.13, 0.98)
+	sb.border_color = Color(0.3, 0.7, 1.0, 0.9)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(14)
+	teleport_modal_panel.add_theme_stylebox_override("panel", sb)
+	ui_layer.add_child(teleport_modal_panel)
+	
+	var root_vbox := VBoxContainer.new()
+	root_vbox.add_theme_constant_override("separation", 8)
+	teleport_modal_panel.add_child(root_vbox)
+	
+	# Top bar
+	var top_bar := HBoxContainer.new()
+	root_vbox.add_child(top_bar)
+	
+	var t_title := Label.new()
+	t_title.text = "🗺️ CHUNK TELEPORT SELECTOR"
+	t_title.add_theme_font_size_override("font_size", 15)
+	t_title.add_theme_color_override("font_color", Color("#FBBF24"))
+	top_bar.add_child(t_title)
+	
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_bar.add_child(spacer)
+	
+	var btn_close := Button.new()
+	btn_close.text = " ✕ Tutup "
+	btn_close.pressed.connect(func(): teleport_modal_panel.visible = false)
+	top_bar.add_child(btn_close)
+	
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Klik salah satu node chunk pada grid di bawah untuk langsung berteleportasi ke ruangan tersebut."
+	sub_lbl.add_theme_font_size_override("font_size", 11)
+	sub_lbl.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95))
+	root_vbox.add_child(sub_lbl)
+	
+	# Center Canvas Card
+	var canvas_card := PanelContainer.new()
+	canvas_card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var sb_c := StyleBoxFlat.new()
+	sb_c.bg_color = Color(0.03, 0.05, 0.08, 0.95)
+	sb_c.border_color = Color(0.2, 0.3, 0.45, 0.7)
+	sb_c.set_border_width_all(1)
+	sb_c.set_corner_radius_all(6)
+	canvas_card.add_theme_stylebox_override("panel", sb_c)
+	root_vbox.add_child(canvas_card)
+	
+	teleport_canvas = Control.new()
+	teleport_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
+	teleport_canvas.draw.connect(_on_draw_teleport_canvas)
+	teleport_canvas.gui_input.connect(_on_teleport_canvas_gui_input)
+	canvas_card.add_child(teleport_canvas)
+	
+	# Legend Footer
+	var leg_lbl := Label.new()
+	leg_lbl.text = "Keterangan: 🟢 Start | 🟣 Portal | 🟡 Lokasi Player | 🔴 Musuh | 🔶 Item | 🟦 Clear"
+	leg_lbl.add_theme_font_size_override("font_size", 10)
+	leg_lbl.add_theme_color_override("font_color", Color(0.65, 0.75, 0.85))
+	root_vbox.add_child(leg_lbl)
+
+func _show_teleport_modal(show_val: bool) -> void:
+	if teleport_modal_panel:
+		teleport_modal_panel.visible = show_val
+		if show_val and teleport_canvas:
+			teleport_canvas.queue_redraw()
+
+func _on_draw_teleport_canvas() -> void:
+	if teleport_canvas == null or current_map_state == null:
+		return
+	var rect = teleport_canvas.get_rect()
+	var gw = current_map_state.grid_w
+	var gh = current_map_state.grid_h
+	var pad = 36.0
+	var cell_w = (rect.size.x - pad * 2.0) / float(gw)
+	var cell_h = (rect.size.y - pad * 2.0) / float(gh)
+	var radius = min(cell_w, cell_h) * 0.34
+	
+	var raw_templates = template_instance.get_chunk_templates() if template_instance else []
+	var tpl_dict: Dictionary = {}
+	for t in raw_templates: tpl_dict[t.id] = t
+	
+	var assignments = current_map_state.chunk_templates
+	var entities = current_map_state.chunk_entities
+	
+	# 1. Gambar koneksi pintu antar-chunk
+	for cx in range(gw):
+		for cy in range(gh):
+			var pos = Vector2i(cx, cy)
+			var tpl_id = assignments.get(pos, "")
+			if tpl_id == "" or tpl_id == "SOLID": continue
+			var tpl = tpl_dict.get(tpl_id)
+			if tpl == null: continue
+			var c_px = Vector2(pad + (float(cx) + 0.5) * cell_w, pad + (float(cy) + 0.5) * cell_h)
+			
+			if cx < gw - 1 and tpl.doors[2]:
+				var east_pos = pos + Vector2i(1, 0)
+				var east_tpl = tpl_dict.get(assignments.get(east_pos, ""))
+				if east_tpl != null and east_tpl.doors[3]:
+					var east_px = Vector2(pad + (float(cx + 1) + 0.5) * cell_w, pad + (float(cy) + 0.5) * cell_h)
+					teleport_canvas.draw_line(c_px, east_px, Color(0.2, 0.7, 0.95, 0.75), 4.0)
+					
+			if cy < gh - 1 and tpl.doors[1]:
+				var south_pos = pos + Vector2i(0, 1)
+				var south_tpl = tpl_dict.get(assignments.get(south_pos, ""))
+				if south_tpl != null and south_tpl.doors[0]:
+					var south_px = Vector2(pad + (float(cx) + 0.5) * cell_w, pad + (float(cy + 1) + 0.5) * cell_h)
+					teleport_canvas.draw_line(c_px, south_px, Color(0.2, 0.7, 0.95, 0.75), 4.0)
+					
+	# 2. Gambar Nodes
+	for cx in range(gw):
+		for cy in range(gh):
+			var pos = Vector2i(cx, cy)
+			var center_pt = Vector2(pad + (float(cx) + 0.5) * cell_w, pad + (float(cy) + 0.5) * cell_h)
+			var tpl_id = assignments.get(pos, "")
+			var bg_color = Color(0.18, 0.22, 0.28, 0.7)
+			var border_color = Color(0.35, 0.45, 0.6, 0.8)
+			
+			var is_player = (pos == current_chunk)
+			var is_start = (pos == current_map_state.start_chunk)
+			var is_portal = (pos == current_map_state.portal_chunk)
+			var ent = entities.get(pos, { "type": "empty" })
+			
+			if tpl_id == "SOLID":
+				bg_color = Color(0.1, 0.12, 0.16, 0.85)
+				border_color = Color(0.25, 0.28, 0.35, 0.6)
+			elif is_start:
+				bg_color = Color("#10B981")
+				border_color = Color("#34D399")
+			elif is_portal:
+				bg_color = Color("#8B5CF6")
+				border_color = Color("#A78BFA")
+			elif ent.type == "enemy":
+				bg_color = Color("#EF4444")
+				border_color = Color("#F87171")
+			elif ent.type == "item":
+				bg_color = Color("#F59E0B")
+				border_color = Color("#FBBF24")
+			else:
+				bg_color = Color("#3B82F6")
+				border_color = Color("#60A5FA")
+				
+			teleport_canvas.draw_circle(center_pt, radius, bg_color)
+			teleport_canvas.draw_arc(center_pt, radius, 0, TAU, 24, border_color, 2.0)
+			
+			if is_player:
+				teleport_canvas.draw_arc(center_pt, radius + 4.0, 0, TAU, 24, Color("#FBBF24"), 3.0)
+				
+			var lbl = "%d,%d" % [cx, cy]
+			if is_player: lbl += "\nPAWN"
+			elif is_start: lbl += "\nSTART"
+			elif is_portal: lbl += "\nEXIT"
+			elif ent.type == "enemy": lbl += "\n💀"
+			elif ent.type == "item": lbl += "\n💎"
+			
+			teleport_canvas.draw_string(ThemeDB.fallback_font, center_pt + Vector2(-radius * 0.75, -radius * 0.1), lbl, HORIZONTAL_ALIGNMENT_CENTER, int(radius * 1.5), 10, Color.WHITE)
+
+func _on_teleport_canvas_gui_input(event: InputEvent) -> void:
+	if current_map_state == null or teleport_canvas == null:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var rect = teleport_canvas.get_rect()
+		var gw = current_map_state.grid_w
+		var gh = current_map_state.grid_h
+		var pad = 36.0
+		var cell_w = (rect.size.x - pad * 2.0) / float(gw)
+		var cell_h = (rect.size.y - pad * 2.0) / float(gh)
+		var radius = min(cell_w, cell_h) * 0.34
+		var m_pos = event.position
+		
+		for cx in range(gw):
+			for cy in range(gh):
+				var center_pt = Vector2(pad + (float(cx) + 0.5) * cell_w, pad + (float(cy) + 0.5) * cell_h)
+				if m_pos.distance_to(center_pt) <= radius * 1.3:
+					_teleport_player_to_chunk(Vector2i(cx, cy))
+					return
+
+func _teleport_player_to_chunk(c_pos: Vector2i) -> void:
+	if current_map_state == null:
+		return
+	var target_px = get_chunk_center_pixel(c_pos)
+	if player_node:
+		player_node.global_position = target_px
+		player_node.velocity = Vector2.ZERO
+		if "current_path" in player_node:
+			player_node.current_path.clear()
+	if camera:
+		camera.global_position = target_px
+	current_chunk = c_pos
+	var wm = _get_wm()
+	if wm:
+		wm.current_chunk = c_pos
+	_update_room_hud()
+	_spawn_floating_text(target_px, "⚡ TELEPORTED TO (%d, %d)" % [c_pos.x, c_pos.y], Color(0.4, 0.85, 1.0))
+	if is_instance_valid(teleport_modal_panel):
+		teleport_modal_panel.visible = false
+	if is_instance_valid(teleport_canvas):
+		teleport_canvas.queue_redraw()
+
+# --- World Overlay: Grid, Coordinates, Door Markers & Classification Tint ---
+func _on_draw_debug_grid_overlay() -> void:
+	if current_map_state == null or debug_grid_overlay == null or chk_debug_grid == null or not chk_debug_grid.button_pressed:
+		return
+	var gw = current_map_state.grid_w
+	var gh = current_map_state.grid_h
+	var p = template_instance.chunk_size_p if template_instance else 7
+	var q = template_instance.chunk_size_q if template_instance else 7
+	var chunk_px_size = Vector2(float(p) * 64.0, float(q) * 64.0)
+	var raw_templates = template_instance.get_chunk_templates() if template_instance else []
+	var tpl_dict: Dictionary = {}
+	for t in raw_templates: tpl_dict[t.id] = t
+	
+	var path_set: Dictionary = {}
+	for cp in current_map_state.chunk_path:
+		path_set[cp] = true
+		
+	for cy in range(gh):
+		for cx in range(gw):
+			var c_pos = Vector2i(cx, cy)
+			var orig_px = Vector2(get_chunk_tile_origin(c_pos)) * 64.0
+			var rect = Rect2(orig_px, chunk_px_size)
+			var tpl_id = current_map_state.chunk_templates.get(c_pos, "SOLID")
+			var tpl = tpl_dict.get(tpl_id)
+			
+			# 1.4 Room Classification Tint:
+			if path_set.has(c_pos):
+				# Main Path (Cyan/Green tint)
+				debug_grid_overlay.draw_rect(rect, Color(0.1, 0.75, 0.95, 0.16), true)
+			elif tpl_id == "SOLID":
+				# Solid / Unreachable (Dark Red)
+				debug_grid_overlay.draw_rect(rect, Color(0.85, 0.15, 0.15, 0.28), true)
+			else:
+				# Side Path (Yellow tint)
+				debug_grid_overlay.draw_rect(rect, Color(0.95, 0.8, 0.15, 0.14), true)
+				
+			# 1.2 Chunk Grid Lines / Border
+			var border_col = Color(0.3, 0.8, 1.0, 0.7) if path_set.has(c_pos) else (Color(0.8, 0.3, 0.3, 0.6) if tpl_id == "SOLID" else Color(0.8, 0.8, 0.8, 0.4))
+			debug_grid_overlay.draw_rect(rect, border_col, false, 2.0)
+			
+			# 1.3 Door Connection Markers (Green bars on edges)
+			if tpl != null:
+				var center = orig_px + chunk_px_size * 0.5
+				# North (top)
+				if tpl.doors[0]:
+					debug_grid_overlay.draw_line(Vector2(center.x - 28, orig_px.y + 4), Vector2(center.x + 28, orig_px.y + 4), Color(0.2, 1.0, 0.45, 0.95), 6.0)
+				# South (bottom)
+				if tpl.doors[1]:
+					debug_grid_overlay.draw_line(Vector2(center.x - 28, orig_px.y + chunk_px_size.y - 4), Vector2(center.x + 28, orig_px.y + chunk_px_size.y - 4), Color(0.2, 1.0, 0.45, 0.95), 6.0)
+				# East (right)
+				if tpl.doors[2]:
+					debug_grid_overlay.draw_line(Vector2(orig_px.x + chunk_px_size.x - 4, center.y - 28), Vector2(orig_px.x + chunk_px_size.x - 4, center.y + 28), Color(0.2, 1.0, 0.45, 0.95), 6.0)
+				# West (left)
+				if tpl.doors[3]:
+					debug_grid_overlay.draw_line(Vector2(orig_px.x + 4, center.y - 28), Vector2(orig_px.x + 4, center.y + 28), Color(0.2, 1.0, 0.45, 0.95), 6.0)
+					
+			# 1.2 Coordinate & Template label
+			var label_str = "Chunk (%d, %d)\n%s" % [cx, cy, tpl_id]
+			if c_pos == current_map_state.start_chunk:
+				label_str += " 🟢 [START]"
+			elif c_pos == current_map_state.portal_chunk:
+				label_str += " 🟣 [PORTAL]"
+			debug_grid_overlay.draw_string(ThemeDB.fallback_font, orig_px + Vector2(10, 22), label_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.95))
 
 # =========================================================================
 # EKSEKUSI GENERASI MAP & LOGIKA STEP-BY-STEP
@@ -1186,6 +1780,9 @@ func _render_map(state, csp_stats: Dictionary, ls_stats: Dictionary) -> void:
 	_draw_chunk_path(state.chunk_path)
 	_update_room_hud()
 	
+	last_csp_stats = csp_stats
+	last_ls_stats = ls_stats
+	
 	if lbl_hud_stats:
 		lbl_hud_stats.text = "Threat: %.1f / %.1f | Path: %d Rooms | Solvable: %s" % [
 			state.difficulty_score,
@@ -1193,11 +1790,21 @@ func _render_map(state, csp_stats: Dictionary, ls_stats: Dictionary) -> void:
 			state.chunk_path.size(),
 			"Yes" if state.is_solvable else "No"
 		]
+		
+	_update_debug_ai_stats()
+	if debug_grid_overlay and chk_debug_grid and chk_debug_grid.button_pressed:
+		debug_grid_overlay.queue_redraw()
+	if teleport_canvas and teleport_modal_panel and teleport_modal_panel.visible:
+		teleport_canvas.queue_redraw()
 
 func _draw_chunk_path(route: Array) -> void:
 	if path_line == null:
 		return
 	path_line.clear_points()
+	if chk_debug_optimal_path and not chk_debug_optimal_path.button_pressed:
+		path_line.visible = false
+		return
+	path_line.visible = true
 	for c_pos in route:
 		path_line.add_point(get_chunk_center_pixel(c_pos))
 
@@ -1235,6 +1842,8 @@ func _monitor_player_exploration_position() -> void:
 		if p_chunk.x >= 0 and p_chunk.x < current_map_state.grid_w and p_chunk.y >= 0 and p_chunk.y < current_map_state.grid_h:
 			current_chunk = p_chunk
 			_update_room_hud()
+			if teleport_canvas and teleport_modal_panel and teleport_modal_panel.visible:
+				teleport_canvas.queue_redraw()
 
 	# 2. Cek apakah sampai ke portal chunk (Eksplorasi Selesai!)
 	var portal_px = get_chunk_center_pixel(current_map_state.portal_chunk)
@@ -1269,6 +1878,9 @@ func _monitor_player_exploration_position() -> void:
 				continue
 			var enemy_px = get_chunk_center_pixel(c_pos)
 			if p_chunk == c_pos or p_pos.distance_to(enemy_px) < 145.0:
+				if chk_debug_skip_battle and chk_debug_skip_battle.button_pressed:
+					_trigger_enemy_encounter(c_pos, ent)
+					return
 				is_event_busy = true
 				if player_node.has_method("set_active"):
 					player_node.set_active(false)
@@ -1416,6 +2028,34 @@ func _collect_item_at_chunk(c_pos: Vector2i, ent: Dictionary) -> void:
 		_spawn_floating_text(player_node.global_position, pickup_res.get("text", "+Item"), pickup_res.get("color", Color.WHITE))
 
 func _trigger_enemy_encounter(c_pos: Vector2i, ent: Dictionary) -> void:
+	if chk_debug_skip_battle and chk_debug_skip_battle.button_pressed:
+		var wm = _get_wm()
+		if wm:
+			if not (c_pos in wm.defeated_chunks):
+				wm.defeated_chunks.append(c_pos)
+				wm.enemies_defeated_count += 1
+		
+		var enemy_node: Node2D = null
+		if enemies_container:
+			for child in enemies_container.get_children():
+				if child.has_meta("chunk_pos") and child.get_meta("chunk_pos") == c_pos:
+					enemy_node = child
+					break
+		if enemy_node and is_instance_valid(enemy_node):
+			var tw = create_tween()
+			tw.tween_property(enemy_node, "modulate:a", 0.0, 0.25)
+			tw.tween_callback(enemy_node.queue_free)
+		
+		if current_map_state and current_map_state.chunk_entities.has(c_pos):
+			current_map_state.chunk_entities[c_pos]["type"] = "defeated"
+		is_event_busy = false
+		if player_node:
+			if player_node.has_method("set_active"):
+				player_node.set_active(true)
+			_spawn_floating_text(player_node.global_position, "BATTLE SKIPPED: %s" % ent.get("name", "Enemy"), Color(1.0, 0.75, 0.3))
+		_update_room_hud()
+		return
+
 	is_event_busy = true
 	if player_node and player_node.has_method("set_active"):
 		player_node.set_active(false)

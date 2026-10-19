@@ -7,7 +7,7 @@ extends Area2D
 ## tombol X lebih besar di pojok kanan atas, tanpa icon pedang di tepi header.
 
 @export var prompt_radius: float = 130.0
-@export var enemy_preset_key: String = "slime"
+@export var enemy_preset_key: String = "thief"
 @export var prompt_label_text: String = "Start Battle"
 
 var is_player_near: bool = false
