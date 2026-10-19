@@ -1443,6 +1443,7 @@ y_sort_enabled = true
 position = Vector2(300, 0)
 script = ExtResource("4_enemy_script")
 enemy_name = "Thief"
+threat_level = 20.0
 tier = "Easy"
 max_hp = 110
 atk_val = 20
@@ -1590,6 +1591,7 @@ position = Vector2(111, -366)
 script = ExtResource("5_item_script")
 item_name = "Stamina Potion"
 item_type = "Status Effect"
+benefit_value = 20.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Items/Potstamina" unique_id=453819360]
 texture_filter = 1
@@ -1601,7 +1603,7 @@ position = Vector2(150, 0)
 script = ExtResource("5_item_script")
 item_name = "HP Potion"
 item_type = "Status Effect"
-benefit_value = 15.0
+benefit_value = 25.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Items/Pothp" unique_id=2040807349]
 texture_filter = 1
@@ -1611,9 +1613,9 @@ texture = ExtResource("42_gonoa")
 [node name="Axe" type="Node2D" parent="Items" unique_id=1806961306]
 position = Vector2(300, 0)
 script = ExtResource("5_item_script")
-item_name = "Steel Axe"
+item_name = "Axe"
 item_type = "Damage Boost"
-benefit_value = 35.0
+benefit_value = 25.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Items/Axe" unique_id=53593676]
 texture_filter = 1
@@ -1637,6 +1639,7 @@ position = Vector2(600, 0)
 script = ExtResource("5_item_script")
 item_name = "Meat"
 item_type = "Heal"
+benefit_value = 40.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Items/Meat" unique_id=1168010698]
 texture_filter = 1

@@ -7,7 +7,7 @@ extends Node2D
 
 @export var item_name: String = "Item"
 @export var item_type: String = "Resource"
-@export var benefit_value: float = 20.0
+@export var benefit_value: float = 10.0
 
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
 

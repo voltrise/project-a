@@ -265,28 +265,42 @@ func run_local_search_optimization(
 			"state": current_state.duplicate_state(),
 			"energy": current_state.energy,
 			"diff": current_state.difficulty_score,
+			"target_diff": target_difficulty,
 			"temp": 100.0,
-			"var": null,
-			"desc": "Initial Entity Layout: Difficulty = %.1f (Target = %.1f, Energy = %.1f)" % [current_state.difficulty_score, target_difficulty, current_state.energy]
+			"var": current_state.start_chunk,
+			"op_name": "Inisialisasi",
+			"mut_detail": "Menempatkan sebaran awal musuh dan item acak di ruang kosong.",
+			"delta_e": 0.0,
+			"prev_energy": current_state.energy,
+			"prev_diff": current_state.difficulty_score,
+			"accepted": true,
+			"acceptance_mode": "init",
+			"desc": "Inisialisasi Entitas Awal: Difficulty = %.1f (Target = %.1f, Energy = %.1f)" % [current_state.difficulty_score, target_difficulty, current_state.energy]
 		})
 	
 	if algorithm == "simulated_annealing":
 		var temp = 100.0
 		var cooling = 0.97
 		for step in range(max_steps):
+			var prev_energy = current_state.energy
+			var prev_diff = current_state.difficulty_score
 			var neighbor = current_state.duplicate_state()
-			_mutate_state(neighbor, enemy_pool, item_pool)
+			var mut_info = _mutate_state(neighbor, enemy_pool, item_pool)
 			_evaluate_state(neighbor, target_difficulty)
 			
 			var delta_e = neighbor.energy - current_state.energy
-			var accepted = delta_e < 0.0 or randf() < exp(-delta_e / max(0.01, temp))
+			var is_improvement = delta_e < 0.0
+			var accept_prob = exp(-delta_e / max(0.01, temp))
+			var accepted_by_temp = (not is_improvement) and (randf() < accept_prob)
+			var accepted = is_improvement or accepted_by_temp
 			if accepted:
 				current_state = neighbor
 				if current_state.energy < best_state.energy:
 					best_state = current_state.duplicate_state()
 					
-			if record_steps and (step < 30 or step % 2 == 0 or step == max_steps - 1) and search_steps.size() < 150:
-				var act = "Improved (Cost -%.1f)" % abs(delta_e) if delta_e < 0.0 else ("Accepted by Temp" if accepted else "Rejected")
+			if record_steps and (step < 35 or step % 2 == 0 or step == max_steps - 1) and search_steps.size() < 150:
+				var target_pos = mut_info.get("target_pos", Vector2i.ZERO)
+				var act = "Improved (ΔE = %.1f)" % delta_e if is_improvement else ("Accepted by Temp (P=%.1f%%)" % (accept_prob * 100.0) if accepted else "Rejected (ΔE = +%.1f)" % delta_e)
 				search_steps.append({
 					"phase": "local_search",
 					"type": "mutate",
@@ -294,11 +308,20 @@ func run_local_search_optimization(
 					"state": current_state.duplicate_state(),
 					"energy": current_state.energy,
 					"diff": current_state.difficulty_score,
+					"target_diff": target_difficulty,
 					"temp": temp,
-					"var": null,
-					"desc": "Step %d: %s. Current Energy = %.1f, Diff = %.1f" % [step + 1, act, current_state.energy, current_state.difficulty_score]
+					"var": target_pos,
+					"other_var": mut_info.get("other_pos", null),
+					"op_name": mut_info.get("op_name", "Mutasi"),
+					"mut_detail": mut_info.get("detail", ""),
+					"delta_e": delta_e,
+					"prev_energy": prev_energy,
+					"prev_diff": prev_diff,
+					"accepted": accepted,
+					"acceptance_mode": "improvement" if is_improvement else ("probabilistic" if accepted else "rejected"),
+					"accept_prob": accept_prob,
+					"desc": "Step %d: %s [%d, %d] - %s" % [step + 1, mut_info.get("op_name", "Mutasi"), target_pos.x, target_pos.y, act]
 				})
-					
 			temp *= cooling
 			if step % 5 == 0 or step == max_steps - 1:
 				history.append({
@@ -420,7 +443,7 @@ func _initialize_random_entities(state: GeneratedMapState, enemy_pool: Array, it
 			else:
 				state.chunk_entities[pos] = { "type": "empty", "threat": 0.0, "benefit": 0.0 }
 
-func _mutate_state(state: GeneratedMapState, enemy_pool: Array, item_pool: Array) -> void:
+func _mutate_state(state: GeneratedMapState, enemy_pool: Array, item_pool: Array) -> Dictionary:
 	# Pilih satu chunk non-start, non-portal secara acak untuk dimutasi
 	var valid_candidates: Array = []
 	for cx in range(state.grid_w):
@@ -432,10 +455,13 @@ func _mutate_state(state: GeneratedMapState, enemy_pool: Array, item_pool: Array
 					valid_candidates.append(pos)
 					
 	if valid_candidates.is_empty():
-		return
+		return {}
 		
 	var target_pos = valid_candidates[randi() % valid_candidates.size()]
 	var op = randi() % 4
+	var op_name = ""
+	var detail = ""
+	var other_pos = null
 	
 	match op:
 		0: # Ubah ke enemy lain (upgrade / downgrade)
@@ -451,6 +477,10 @@ func _mutate_state(state: GeneratedMapState, enemy_pool: Array, item_pool: Array
 					"atk": e.atk,
 					"benefit": 0.0
 				}
+				op_name = "Spawn/Mutate Enemy"
+				detail = "Menempatkan musuh %s (Tier %s, Threat %.1f, HP %d, ATK %d)" % [e.name, e.tier, e.threat, e.hp, e.atk]
+			else:
+				op_name = "None"
 		1: # Pasang item
 			if not item_pool.is_empty():
 				var it = item_pool[randi() % item_pool.size()]
@@ -465,16 +495,33 @@ func _mutate_state(state: GeneratedMapState, enemy_pool: Array, item_pool: Array
 					"hp": 0,
 					"atk": 0
 				}
+				op_name = "Spawn Item"
+				detail = "Menaruh item bantuan %s (+%.1f Benefit)" % [it.name, it.benefit]
+			else:
+				op_name = "None"
 		2: # Kosongkan chunk
 			state.chunk_entities[target_pos] = { "type": "empty", "threat": 0.0, "benefit": 0.0 }
+			op_name = "Clear Chunk"
+			detail = "Mengosongkan entitas pada chunk [%d, %d]" % [target_pos.x, target_pos.y]
 		3: # Tukar isi dengan chunk lain
-			var other_pos = valid_candidates[randi() % valid_candidates.size()]
+			other_pos = valid_candidates[randi() % valid_candidates.size()]
 			if other_pos != target_pos:
 				var tmp = state.chunk_entities.get(target_pos, { "type": "empty" })
 				state.chunk_entities[target_pos] = state.chunk_entities.get(other_pos, { "type": "empty" })
 				state.chunk_entities[other_pos] = tmp
-
-# =========================================================================
+				op_name = "Swap Entities"
+				detail = "Menukar entitas chunk [%d, %d] dengan [%d, %d]" % [target_pos.x, target_pos.y, other_pos.x, other_pos.y]
+			else:
+				op_name = "Swap Self"
+				detail = "Tidak ada pertukaran (chunk target sama)"
+				
+	return {
+		"target_pos": target_pos,
+		"other_pos": other_pos,
+		"op": op,
+		"op_name": op_name,
+		"detail": detail
+	}
 # PATHFINDING BFS ANTAR CHUNK (Memvalidasi Reachability Start -> Portal)
 # =========================================================================
 func _find_bfs_path(assignments: Dictionary, tpl_dict: Dictionary, start: Vector2i, goal: Vector2i, gw: int, gh: int) -> Array:

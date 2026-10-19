@@ -45,6 +45,7 @@ var opt_local_search: OptionButton = null
 # Player Status HUD Widgets
 var lbl_player_hp: Label = null
 var hp_bar: ProgressBar = null
+var lbl_buff_title: Label = null
 var buffs_box: HBoxContainer = null
 var recap_modal_panel: PanelContainer = null
 
@@ -76,6 +77,7 @@ var lbl_vis_title: Label = null
 var lbl_vis_phase: Label = null
 var lbl_vis_desc: Label = null
 var lbl_vis_metrics: Label = null
+var lbl_step_detail: RichTextLabel = null
 var lbl_chunk_detail: RichTextLabel = null
 var slider_vis_step: HSlider = null
 var btn_vis_play: Button = null
@@ -486,36 +488,82 @@ func _build_graph_visualizer() -> void:
 	middle_hbox.add_child(inspect_card)
 	
 	var inspect_vbox := VBoxContainer.new()
+	inspect_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inspect_vbox.add_theme_constant_override("separation", 10)
 	inspect_card.add_child(inspect_vbox)
 	
-	var l_card_title := Label.new()
-	l_card_title.text = "📊 Chunk & Step Inspector"
-	l_card_title.add_theme_font_size_override("font_size", 14)
-	l_card_title.add_theme_color_override("font_color", Color("#93C5FD"))
-	inspect_vbox.add_child(l_card_title)
+	# 1. TOP SECTION: STEP INFORMATION (50% Vertical)
+	var step_card := PanelContainer.new()
+	step_card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	step_card.size_flags_stretch_ratio = 1.0
+	var sb_step := StyleBoxFlat.new()
+	sb_step.bg_color = Color(0.03, 0.05, 0.08, 0.92)
+	sb_step.border_color = Color(0.25, 0.40, 0.65, 0.75)
+	sb_step.set_border_width_all(1)
+	sb_step.set_corner_radius_all(6)
+	sb_step.set_content_margin_all(8)
+	step_card.add_theme_stylebox_override("panel", sb_step)
+	inspect_vbox.add_child(step_card)
+	
+	var step_vbox := VBoxContainer.new()
+	step_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	step_vbox.add_theme_constant_override("separation", 4)
+	step_card.add_child(step_vbox)
+	
+	var l_step_title := Label.new()
+	l_step_title.text = "📋 Step Information"
+	l_step_title.add_theme_font_size_override("font_size", 13)
+	l_step_title.add_theme_color_override("font_color", Color("#60A5FA"))
+	step_vbox.add_child(l_step_title)
 	
 	lbl_vis_desc = Label.new()
-	lbl_vis_desc.text = "Klik node pada graf untuk melihat detail chunk."
-	lbl_vis_desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	lbl_vis_desc.add_theme_font_size_override("font_size", 12)
-	lbl_vis_desc.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
-	inspect_vbox.add_child(lbl_vis_desc)
-	
+	lbl_vis_desc.visible = false
+	step_vbox.add_child(lbl_vis_desc)
 	lbl_vis_metrics = Label.new()
-	lbl_vis_metrics.text = "Assignments: 0 | Backtracks: 0"
-	lbl_vis_metrics.add_theme_font_size_override("font_size", 11)
-	lbl_vis_metrics.add_theme_color_override("font_color", Color(0.7, 0.85, 0.7))
-	inspect_vbox.add_child(lbl_vis_metrics)
+	lbl_vis_metrics.visible = false
+	step_vbox.add_child(lbl_vis_metrics)
 	
-	inspect_vbox.add_child(HSeparator.new())
+	lbl_step_detail = RichTextLabel.new()
+	lbl_step_detail.bbcode_enabled = true
+	lbl_step_detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lbl_step_detail.scroll_active = true
+	lbl_step_detail.add_theme_font_size_override("normal_font_size", 11)
+	lbl_step_detail.add_theme_font_size_override("bold_font_size", 11)
+	lbl_step_detail.text = "[color=#94A3B8]Tekan Play atau gerakkan timeline untuk meninjau langkah simulasi.[/color]"
+	step_vbox.add_child(lbl_step_detail)
+	
+	# 2. BOTTOM SECTION: SELECTED CHUNK / NODE INSPECTOR (50% Vertical)
+	var node_card := PanelContainer.new()
+	node_card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	node_card.size_flags_stretch_ratio = 1.0
+	var sb_node := StyleBoxFlat.new()
+	sb_node.bg_color = Color(0.03, 0.05, 0.08, 0.92)
+	sb_node.border_color = Color(0.45, 0.35, 0.65, 0.75)
+	sb_node.set_border_width_all(1)
+	sb_node.set_corner_radius_all(6)
+	sb_node.set_content_margin_all(8)
+	node_card.add_theme_stylebox_override("panel", sb_node)
+	inspect_vbox.add_child(node_card)
+	
+	var node_vbox := VBoxContainer.new()
+	node_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	node_vbox.add_theme_constant_override("separation", 4)
+	node_card.add_child(node_vbox)
+	
+	var l_node_title := Label.new()
+	l_node_title.text = "🔍 Selected Chunk Inspector"
+	l_node_title.add_theme_font_size_override("font_size", 13)
+	l_node_title.add_theme_color_override("font_color", Color("#FBBF24"))
+	node_vbox.add_child(l_node_title)
 	
 	lbl_chunk_detail = RichTextLabel.new()
 	lbl_chunk_detail.bbcode_enabled = true
 	lbl_chunk_detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lbl_chunk_detail.scroll_active = true
+	lbl_chunk_detail.add_theme_font_size_override("normal_font_size", 11)
+	lbl_chunk_detail.add_theme_font_size_override("bold_font_size", 11)
 	lbl_chunk_detail.text = "[color=#94A3B8]Pilih salah satu lingkaran node pada graf untuk memeriksa koordinat, pintu, dan entitasnya.[/color]"
-	inspect_vbox.add_child(lbl_chunk_detail)
-	
+	node_vbox.add_child(lbl_chunk_detail)
 	# Bottom Controls: Navigation timeline & enter map
 	var bottom_card := PanelContainer.new()
 	bottom_card.custom_minimum_size = Vector2(0, 72)
@@ -597,25 +645,25 @@ func _build_ingame_hud() -> void:
 	ui_layer.add_child(ingame_hud_panel)
 	
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
 	margin.add_theme_constant_override("margin_top", 8)
 	margin.add_theme_constant_override("margin_bottom", 8)
 	ingame_hud_panel.add_child(margin)
 	
 	var h_row := HBoxContainer.new()
-	h_row.add_theme_constant_override("separation", 14)
-	h_row.alignment = BoxContainer.ALIGNMENT_BEGIN
+	h_row.add_theme_constant_override("separation", 10)
+	h_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_child(h_row)
 	
 	# 1. Player Health Bar Container (Vertically Aligned)
 	var hp_box := HBoxContainer.new()
-	hp_box.add_theme_constant_override("separation", 8)
+	hp_box.add_theme_constant_override("separation", 6)
 	hp_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h_row.add_child(hp_box)
 	
 	var hp_title := Label.new()
-	hp_title.text = "💖 Player HP:"
+	hp_title.text = "💖 HP:"
 	hp_title.add_theme_font_size_override("font_size", 12)
 	hp_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.6))
 	hp_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -626,7 +674,7 @@ func _build_ingame_hud() -> void:
 		var wm_init = get_node("/root/WildernessManager")
 		init_max_hp = wm_init.get("player_max_hp")
 	hp_bar = ProgressBar.new()
-	hp_bar.custom_minimum_size = Vector2(160, 20)
+	hp_bar.custom_minimum_size = Vector2(135, 20)
 	hp_bar.min_value = 0
 	hp_bar.max_value = init_max_hp
 	hp_bar.value = init_max_hp
@@ -644,7 +692,7 @@ func _build_ingame_hud() -> void:
 	
 	lbl_player_hp = Label.new()
 	lbl_player_hp.text = "%d / %d" % [init_max_hp, init_max_hp]
-	lbl_player_hp.custom_minimum_size = Vector2(75, 0)
+	lbl_player_hp.custom_minimum_size = Vector2(65, 0)
 	lbl_player_hp.add_theme_font_size_override("font_size", 12)
 	lbl_player_hp.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
 	lbl_player_hp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -656,19 +704,19 @@ func _build_ingame_hud() -> void:
 	
 	# 2. Efek Item Aktif Container (Vertically Aligned)
 	var buff_container := HBoxContainer.new()
-	buff_container.add_theme_constant_override("separation", 8)
+	buff_container.add_theme_constant_override("separation", 6)
 	buff_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h_row.add_child(buff_container)
 	
-	var buff_title := Label.new()
-	buff_title.text = "Efek Item Aktif:"
-	buff_title.add_theme_font_size_override("font_size", 12)
-	buff_title.add_theme_color_override("font_color", Color(0.85, 0.9, 0.98))
-	buff_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	buff_container.add_child(buff_title)
+	lbl_buff_title = Label.new()
+	lbl_buff_title.text = "Buffs:"
+	lbl_buff_title.add_theme_font_size_override("font_size", 12)
+	lbl_buff_title.add_theme_color_override("font_color", Color(0.85, 0.9, 0.98))
+	lbl_buff_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	buff_container.add_child(lbl_buff_title)
 	
 	buffs_box = HBoxContainer.new()
-	buffs_box.add_theme_constant_override("separation", 6)
+	buffs_box.add_theme_constant_override("separation", 4)
 	buffs_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	buff_container.add_child(buffs_box)
 	
@@ -677,10 +725,16 @@ func _build_ingame_hud() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h_row.add_child(spacer)
 	
-	# 3. Tombol Toggle Debug Menu (F3)
+	# 3. Right Box (Pinned at the right margin, immune to overflow)
+	var right_box := HBoxContainer.new()
+	right_box.add_theme_constant_override("separation", 8)
+	right_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	right_box.size_flags_horizontal = Control.SIZE_SHRINK_END
+	h_row.add_child(right_box)
+	
 	btn_debug_toggle = Button.new()
 	btn_debug_toggle.text = "🛠️ Debug (F3)"
-	btn_debug_toggle.custom_minimum_size = Vector2(115, 32)
+	btn_debug_toggle.custom_minimum_size = Vector2(105, 32)
 	var dt_sb := StyleBoxFlat.new()
 	dt_sb.bg_color = Color(0.12, 0.22, 0.35, 0.95)
 	dt_sb.border_color = Color(0.3, 0.6, 0.9, 0.9)
@@ -689,17 +743,14 @@ func _build_ingame_hud() -> void:
 	btn_debug_toggle.add_theme_stylebox_override("normal", dt_sb)
 	btn_debug_toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn_debug_toggle.pressed.connect(_toggle_debug_menu)
-	h_row.add_child(btn_debug_toggle)
+	right_box.add_child(btn_debug_toggle)
 	
-	# 4. Return ke Overworld
 	btn_overworld = Button.new()
 	btn_overworld.text = "🏠 Overworld"
 	btn_overworld.custom_minimum_size = Vector2(95, 32)
 	btn_overworld.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn_overworld.pressed.connect(_return_to_overworld)
-	h_row.add_child(btn_overworld)
-	
-
+	right_box.add_child(btn_overworld)
 func _update_player_status_hud() -> void:
 	if not has_node("/root/WildernessManager"):
 		return
@@ -715,55 +766,113 @@ func _update_player_status_hud() -> void:
 	
 	if buffs_box:
 		for c in buffs_box.get_children():
+			buffs_box.remove_child(c)
 			c.queue_free()
 		
 		var b_dict = wm.get("active_buffs")
-		var any_buff: bool = false
+		var active_list: Array = []
 		
 		if b_dict.get("pothp", 0) > 0:
-			_create_hud_buff_pill("🧪 HP Pot (+25 HP Rest)", b_dict["pothp"], Color(0.95, 0.4, 0.5))
-			any_buff = true
+			active_list.append({
+				"id": "pothp",
+				"icon": "🧪",
+				"name": "HP Pot",
+				"short": "+25 HP",
+				"full": "+25 HP Rest Recovery",
+				"dur": b_dict["pothp"],
+				"color": Color(0.95, 0.4, 0.5)
+			})
 		if b_dict.get("potstamina", 0) > 0:
-			_create_hud_buff_pill("⚡ Stamina Pot (-25% Cost)", b_dict["potstamina"], Color(0.3, 0.85, 1.0))
-			any_buff = true
+			active_list.append({
+				"id": "potstamina",
+				"icon": "⚡",
+				"name": "Stamina",
+				"short": "-25% STM",
+				"full": "-25% Stamina Cost Reduction",
+				"dur": b_dict["potstamina"],
+				"color": Color(0.3, 0.85, 1.0)
+			})
 		if b_dict.get("sword", 0) > 0:
-			_create_hud_buff_pill("⚔️ Sword (+10% ATK)", b_dict["sword"], Color(1.0, 0.85, 0.25))
-			any_buff = true
+			active_list.append({
+				"id": "sword",
+				"icon": "⚔️",
+				"name": "Sword",
+				"short": "+10% ATK",
+				"full": "+10% Basic Attack Damage",
+				"dur": b_dict["sword"],
+				"color": Color(1.0, 0.85, 0.25)
+			})
 		if b_dict.get("axe", 0) > 0:
-			_create_hud_buff_pill("🪓 Axe (+10% Heavy)", b_dict["axe"], Color(1.0, 0.5, 0.2))
-			any_buff = true
+			active_list.append({
+				"id": "axe",
+				"icon": "🪓",
+				"name": "Axe",
+				"short": "+10% HVY",
+				"full": "+10% Heavy Attack Damage",
+				"dur": b_dict["axe"],
+				"color": Color(1.0, 0.5, 0.2)
+			})
 		
-		if not any_buff:
+		var total_buffs = active_list.size()
+		if lbl_buff_title:
+			lbl_buff_title.text = "Buffs (%d):" % total_buffs if total_buffs > 0 else "Buffs:"
+			
+		if total_buffs == 0:
 			var empty_lbl := Label.new()
-			empty_lbl.text = "(Tidak ada efek aktif)"
+			empty_lbl.text = "-"
 			empty_lbl.add_theme_font_size_override("font_size", 11)
 			empty_lbl.add_theme_color_override("font_color", Color(0.55, 0.6, 0.68))
 			buffs_box.add_child(empty_lbl)
-
-func _create_hud_buff_pill(title: String, duration: int, col: Color) -> void:
+		else:
+			for b in active_list:
+				_create_hud_buff_pill(b, total_buffs)
+func _create_hud_buff_pill(b: Dictionary, total_buffs: int) -> void:
 	var p := PanelContainer.new()
+	var col: Color = b.color
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.1, 0.16, 0.9)
+	sb.bg_color = Color(0.06, 0.1, 0.16, 0.92)
 	sb.border_color = col
 	sb.set_border_width_all(1)
 	sb.set_corner_radius_all(4)
 	sb.set_content_margin_all(2)
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
+	
+	var label_text := ""
+	var font_sz := 11
+	
+	if total_buffs <= 1:
+		# Format lengkap ketika hanya 1 buff
+		sb.content_margin_left = 6
+		sb.content_margin_right = 6
+		label_text = "%s %s (%s) [%db]" % [b.icon, b.name, b.short, b.dur]
+		font_sz = 11
+	elif total_buffs == 2:
+		# Format compact ketika ada 2 buff
+		sb.content_margin_left = 5
+		sb.content_margin_right = 5
+		label_text = "%s %s [%db]" % [b.icon, b.short, b.dur]
+		font_sz = 10
+	else:
+		# Format badge collapse super-ringkas ketika ada >= 3 buff bersamaan
+		sb.content_margin_left = 4
+		sb.content_margin_right = 4
+		label_text = "%s %s [%d]" % [b.icon, b.short, b.dur]
+		font_sz = 10
+		
 	p.add_theme_stylebox_override("panel", sb)
 	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	p.tooltip_text = "%s %s
+Efek: %s
+Durasi Sisa: %d Battle" % [b.icon, b.name, b.full, b.dur]
 	
 	var l := Label.new()
-	l.text = "%s [%d Battle]" % [title, duration]
-	l.add_theme_font_size_override("font_size", 11)
+	l.text = label_text
+	l.add_theme_font_size_override("font_size", font_sz)
 	l.add_theme_color_override("font_color", col)
 	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	p.add_child(l)
 	
 	if buffs_box:
 		buffs_box.add_child(p)
-
-
 # =========================================================================
 # TOGGLEABLE DEBUG MENU & OVERLAYS (F3 / BUTTON)
 # =========================================================================
@@ -1435,19 +1544,134 @@ func _update_visualizer_view() -> void:
 	var phase_str = "CSP Backtracking" if phase == "csp" else "Local Search Optimization"
 	
 	lbl_vis_phase.text = " | Phase: %s (Step %d/%d)" % [phase_str, current_step_idx + 1, timeline_steps.size()]
-	lbl_vis_desc.text = step_data.get("desc", "")
+	if lbl_vis_desc:
+		lbl_vis_desc.text = step_data.get("desc", "")
 	
+	# Otomatis sinkronkan selected_graph_chunk dengan active node pada step ini
+	var step_var = step_data.get("var", null)
+	if step_var != null and step_var is Vector2i:
+		selected_graph_chunk = step_var
+	elif phase == "csp" and step_data.has("var") and step_data["var"] != null:
+		selected_graph_chunk = step_data["var"]
+	elif phase == "local_search":
+		var act_pos = step_data.get("var", null)
+		if act_pos != null and act_pos is Vector2i:
+			selected_graph_chunk = act_pos
+	
+	# Update Step Information Panel (Rich Text)
 	if phase == "csp":
-		lbl_vis_metrics.text = "CSP Type: %s | Active Var: %s" % [step_data.get("type", ""), str(step_data.get("var", "-"))]
+		var step_type = step_data.get("type", "step")
+		var step_val = step_data.get("val", "-")
+		var step_desc = step_data.get("desc", "")
+		if lbl_vis_metrics:
+			lbl_vis_metrics.text = "CSP Type: %s | Active Var: %s" % [step_type, str(step_var if step_var != null else "-")]
+		
+		var s_bb := ""
+		s_bb += "[b]Fase:[/b] [color=#60A5FA]CSP Backtracking Search[/color]
+"
+		s_bb += "[b]Langkah:[/b] %d / %d
+" % [current_step_idx + 1, timeline_steps.size()]
+		s_bb += "[b]Tipe Aksi:[/b] %s
+" % step_type.to_upper()
+		if step_var != null:
+			s_bb += "[b]Variabel Terpilih (Chunk):[/b] [color=#FBBF24][%d, %d][/color]
+" % [step_var.x, step_var.y]
+			s_bb += "[b]Nilai Template Ditugaskan:[/b] %s
+" % step_val
+		s_bb += "----------------------------------------
+"
+		s_bb += "[b]Deskripsi Operasi:[/b]
+%s
+" % step_desc
+		s_bb += "[color=#94A3B8][b]Prinsip CSP:[/b] Algoritma memeriksa kecocokan template pintu 4 arah (North, South, East, West) dan kendala batas tepi unary. Jika terjadi domain kosong pada tetangga, dilakukan Backtrack.[/color]"
+		if lbl_step_detail:
+			lbl_step_detail.text = s_bb
 	else:
-		lbl_vis_metrics.text = "Temp: %.1f | Energy: %.1f | Diff: %.1f" % [step_data.get("temp", 0.0), step_data.get("energy", 0.0), step_data.get("diff", 0.0)]
+		var step_num = step_data.get("step_num", current_step_idx + 1)
+		var temp = step_data.get("temp", 0.0)
+		var energy = step_data.get("energy", 0.0)
+		var diff = step_data.get("diff", 0.0)
+		var target_diff = step_data.get("target_diff", get_target_difficulty())
+		var delta_e = step_data.get("delta_e", 0.0)
+		var prev_energy = step_data.get("prev_energy", energy)
+		var prev_diff = step_data.get("prev_diff", diff)
+		var acc_mode = step_data.get("acceptance_mode", "improvement")
+		var op_name = step_data.get("op_name", "Mutasi")
+		var mut_detail = step_data.get("mut_detail", "")
+		var target_chunk = step_data.get("var", null)
+		
+		if lbl_vis_metrics:
+			lbl_vis_metrics.text = "Temp: %.1f | Energy: %.1f | Diff: %.1f" % [temp, energy, diff]
+			
+		var status_text = ""
+		if acc_mode == "init":
+			status_text = "[color=#38BDF8]INISIALISASI AWAL[/color]"
+		elif acc_mode == "improvement":
+			status_text = "[color=#4ADE80]DITERIMA (Perbaikan: ΔE = %.1f)[/color]" % delta_e
+		elif acc_mode == "probabilistic":
+			var p_val = step_data.get("accept_prob", 0.0) * 100.0
+			status_text = "[color=#FBBF24]DITERIMA KARENA SUHU (P = %.1f%%)[/color]" % p_val
+		elif acc_mode == "plateau":
+			status_text = "[color=#A78BFA]DITERIMA (Energi Setara: ΔE = 0)[/color]"
+		else:
+			status_text = "[color=#F87171]DITOLAK (Memperburuk: ΔE = +%.1f)[/color]" % delta_e
+			
+		var s_bb := ""
+		s_bb += "[b]Fase:[/b] [color=#C084FC]Local Search (Simulated Annealing)[/color]
+"
+		s_bb += "[b]Langkah:[/b] %d / %d (Iterasi %d)
+" % [current_step_idx + 1, timeline_steps.size(), step_num]
+		s_bb += "[b]Keputusan:[/b] %s
+" % status_text
+		if target_chunk != null:
+			s_bb += "[b]Target Mutasi:[/b] Chunk [color=#FBBF24][%d, %d][/color] - [b]%s[/b]
+" % [target_chunk.x, target_chunk.y, op_name]
+			if not mut_detail.is_empty():
+				s_bb += "• [color=#E2E8F0]%s[/color]
+" % mut_detail
+		s_bb += "----------------------------------------
+"
+		s_bb += "[b]METRIK SISTEM SAAT INI:[/b]
+"
+		s_bb += "• [b]Diff (Difficulty):[/b] [color=#FDE047]%.1f[/color] (Target: %.1f)
+" % [diff, target_diff]
+		s_bb += "• [b]Energy (Error):[/b] [color=%s]%.1f[/color] (Sebelumnya: %.1f | ΔE: %+.1f)
+" % [
+			"#4ADE80" if energy <= 2.0 else ("#FDE047" if energy <= 6.0 else "#F87171"),
+			energy, prev_energy, delta_e
+		]
+		s_bb += "• [b]Temp (Suhu):[/b] [color=#38BDF8]%.2f[/color]
+" % temp
+		s_bb += "----------------------------------------
+"
+		s_bb += "[b]PENJELASAN PARAMETER & PROSES:[/b]
+"
+		s_bb += "• [b]Diff (Difficulty Score):[/b] Skor tantangan map = (Panjang BFS x 8) + Ancaman Musuh - Bantuan Item.
+"
+		s_bb += "• [b]Energy (Residual Cost):[/b] Selisih mutlak ke target (|Diff - Target|). Tujuan optimasi adalah menekan Energy menuju 0.
+"
+		s_bb += "• [b]Temp (Temperature):[/b] Probabilitas menerima solusi lebih buruk (P = e^(-ΔE/Temp)). Di awal suhu tinggi memungkinkan eksplorasi luas agar tidak terjebak di local optima; semakin ke akhir suhu mendingin untuk konvergensi presisi.
+"
+		s_bb += "• [b]Aksi Pada Langkah Ini:[/b]
+"
+		if acc_mode == "init":
+			s_bb += "  Menempatkan sebaran awal musuh dan item acak di ruang kosong untuk membentuk konfigurasi awal sebelum optimasi."
+		elif acc_mode == "improvement":
+			s_bb += "  Mutasi berhasil mendekatkan Difficulty ke target sehingga Energy turun. Perubahan ini langsung disetujui."
+		elif acc_mode == "probabilistic":
+			s_bb += "  Meskipun mutasi menaikkan Energy, suhu (Temp = %.1f) masih cukup panas sehingga mutasi tetap diterima secara stokastik guna menghindari jebakan lokal (local minima)." % temp
+		elif acc_mode == "plateau":
+			s_bb += "  Mutasi memiliki energi yang setara dengan state sebelumnya dan diterima untuk menelusuri dataran solusi."
+		else:
+			s_bb += "  Mutasi memperburuk Energy dan gagal memenuhi ambang probabilitas suhu, sehingga perubahan dibatalkan dan susunan entitas dikembalikan ke state sebelumnya."
+			
+		if lbl_step_detail:
+			lbl_step_detail.text = s_bb
 		
 	if visualizer_canvas:
 		visualizer_canvas.queue_redraw()
 		
 	_update_chunk_inspector()
-
-# =========================================================================
 # RENDERING TOPOLOGICAL GRAPH CHUNK (CANVAS)
 # =========================================================================
 func _on_draw_graph_canvas() -> void:
@@ -1598,7 +1822,6 @@ func _update_chunk_inspector() -> void:
 		return
 		
 	if selected_graph_chunk == Vector2i(-1, -1):
-		# Default pilih start_chunk
 		selected_graph_chunk = current_map_state.start_chunk if current_map_state else Vector2i(0, 0)
 		
 	var pos = selected_graph_chunk
@@ -1656,11 +1879,19 @@ func _update_chunk_inspector() -> void:
 " % doors_str
 	bb += "[b]Entity:[/b] %s
 " % ent_desc
-	bb += "[b]CSP Domain Candidates (%d):[/b] %s" % [domain_left.size(), domain_str]
+	if phase == "csp":
+		bb += "[b]CSP Domain Candidates (%d):[/b] %s
+" % [domain_left.size(), domain_str]
+	else:
+		var is_mutated = (step_data.get("var", null) == pos)
+		if is_mutated:
+			bb += "[color=#4ADE80]⚡ Chunk ini aktif dimutasi pada langkah ini![/color]
+"
+		else:
+			bb += "[color=#94A3B8]Status entitas stabil (tidak dimutasi pada langkah ini).[/color]
+"
 	
 	lbl_chunk_detail.text = bb
-
-# =========================================================================
 # CHUNK-TO-PIXEL CONVERSION & MAP RENDERING
 # =========================================================================
 func get_chunk_tile_origin(c_pos: Vector2i) -> Vector2i:

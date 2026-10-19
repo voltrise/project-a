@@ -7,10 +7,10 @@ extends CharacterBody2D
 ## serta kartu tooltip info saat di-hover mouse.
 
 @export var enemy_name: String = "Enemy"
-@export var threat_level: float = 20.0
+@export var threat_level: float = 10.0
 @export var tier: String = "Common"
 @export var max_hp: int = 80
-@export var atk_val: int = 15
+@export var atk_val: int = 10
 @export var enable_hover_card: bool = true
 
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
@@ -30,11 +30,10 @@ func _ready() -> void:
 
 func _update_tier_color() -> void:
 	match tier:
-		"Common": tier_color = Color("#CBD5E1")
-		"Uncommon": tier_color = Color("#4ADE80")
-		"Rare": tier_color = Color("#38BDF8")
-		"Epic": tier_color = Color("#C084FC")
-		"Legendary": tier_color = Color("#FBBF24")
+		"Easy": tier_color = Color("#4ADE80")
+		"Medium": tier_color = Color("#38BDF8")
+		"Hard": tier_color = Color("#C084FC")
+		"Boss": tier_color = Color("#FBBF24")
 		_: tier_color = Color("#CBD5E1")
 
 func play_animation(anim_name: String) -> void:
