@@ -42,16 +42,18 @@ var opt_val_heuristic: OptionButton = null
 var opt_inference: OptionButton = null
 var opt_local_search: OptionButton = null
 
+# Player Status HUD Widgets
+var lbl_player_hp: Label = null
+var hp_bar: ProgressBar = null
+var buffs_box: HBoxContainer = null
+var recap_modal_panel: PanelContainer = null
+
 # Ingame HUD Widgets
 var lbl_current_room: Label = null
 var lbl_hud_stats: Label = null
 var btn_restart: Button = null
 var btn_overworld: Button = null
-var dpad_container: Control = null
-var btn_move_north: Button = null
-var btn_move_south: Button = null
-var btn_move_west: Button = null
-var btn_move_east: Button = null
+var is_event_busy: bool = false
 
 # Visualizer State & Widgets
 var visualizer_canvas: Control = null
@@ -74,8 +76,10 @@ var selected_graph_chunk: Vector2i = Vector2i(-1, -1)
 # Game State
 var current_map_state = null
 var current_chunk: Vector2i = Vector2i(0, 0)
-var is_moving_chunk: bool = false
 var last_generated_data: Dictionary = {}
+
+func _get_wm() -> Node:
+	return get_node_or_null("/root/WildernessManager")
 
 func _ready() -> void:
 	# 1. Instansiasi template scene untuk membaca data desain
@@ -110,8 +114,32 @@ func _ready() -> void:
 	vis_timer.timeout.connect(_on_vis_timer_tick)
 	add_child(vis_timer)
 	
-	# Buka tampilan awal: Loading / Start Screen (TIDAK langsung freeze generate)
-	_show_screen_state("START")
+	# Buka tampilan awal: Jika ada sesi aktif dari battle, resume langsung!
+	var wm = _get_wm()
+	if wm and wm.has_active_session():
+		_resume_exploration_session()
+	else:
+		_show_screen_state("START")
+
+func _resume_exploration_session() -> void:
+	var wm = _get_wm()
+	if wm == null:
+		_show_screen_state("START")
+		return
+	current_map_state = wm.saved_map_state
+	current_chunk = wm.current_chunk
+	_render_map(current_map_state, wm.saved_csp_result, wm.saved_ls_result)
+	var chunk_px = get_chunk_center_pixel(current_chunk)
+	if player_node:
+		player_node.global_position = chunk_px
+		player_node.visible = true
+		if player_node.has_method("set_active"):
+			player_node.set_active(true)
+	if camera:
+		camera.global_position = chunk_px
+	_show_screen_state("PLAYING")
+	_update_room_hud()
+	_update_player_status_hud()
 
 func _resolve_scene_nodes() -> void:
 	water_foam_layer = _find_tile_layer(["Visuals/Water", "Visuals/WaterFoam", "Background/WaterFoam", "Background/Water", "WaterFoam", "Water"])
@@ -177,7 +205,17 @@ func _show_screen_state(state: String) -> void:
 	if config_dialog_panel: config_dialog_panel.visible = (state == "CONFIG")
 	if visualizer_panel: visualizer_panel.visible = (state == "VISUALIZER")
 	if ingame_hud_panel: ingame_hud_panel.visible = (state == "PLAYING")
-	if dpad_container: dpad_container.visible = (state == "PLAYING")
+
+	if state == "PLAYING":
+		is_event_busy = false
+		if player_node:
+			player_node.visible = true
+			if player_node.has_method("set_active"):
+				player_node.set_active(true)
+	else:
+		if player_node:
+			if player_node.has_method("set_active"):
+				player_node.set_active(false)
 
 # --- 1. START SCREEN (Loading / Launch Menu) ---
 func _build_start_screen() -> void:
@@ -271,9 +309,9 @@ func _build_config_dialog() -> void:
 	l_diff.text = "Target Difficulty:"
 	grid.add_child(l_diff)
 	opt_difficulty = OptionButton.new()
-	opt_difficulty.add_item("Easy (Target: 40)", 0)
-	opt_difficulty.add_item("Medium (Target: 80)", 1)
-	opt_difficulty.add_item("Hard (Target: 140)", 2)
+	opt_difficulty.add_item("Easy (Target: 80)", 0)
+	opt_difficulty.add_item("Medium (Target: 160)", 1)
+	opt_difficulty.add_item("Hard (Target: 250)", 2)
 	opt_difficulty.selected = 1
 	grid.add_child(opt_difficulty)
 	
@@ -523,107 +561,174 @@ func _build_graph_visualizer() -> void:
 func _build_ingame_hud() -> void:
 	ingame_hud_panel = PanelContainer.new()
 	ingame_hud_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	ingame_hud_panel.custom_minimum_size = Vector2(0, 52)
+	ingame_hud_panel.custom_minimum_size = Vector2(0, 84)
 	
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.11, 0.16, 0.88)
-	sb.border_color = Color(0.2, 0.3, 0.45, 0.5)
+	sb.bg_color = Color(0.08, 0.11, 0.16, 0.94)
+	sb.border_color = Color(0.2, 0.3, 0.45, 0.6)
 	sb.border_width_bottom = 2
 	ingame_hud_panel.add_theme_stylebox_override("panel", sb)
 	ui_layer.add_child(ingame_hud_panel)
 	
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_right", 16)
 	margin.add_theme_constant_override("margin_top", 6)
 	margin.add_theme_constant_override("margin_bottom", 6)
 	ingame_hud_panel.add_child(margin)
 	
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 16)
-	margin.add_child(hbox)
+	var main_vbox := VBoxContainer.new()
+	main_vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(main_vbox)
+	
+	# Baris 1: Info Room, Threat / Solvable Stats, Restart & Overworld buttons
+	var row1 := HBoxContainer.new()
+	row1.add_theme_constant_override("separation", 14)
+	main_vbox.add_child(row1)
 	
 	lbl_current_room = Label.new()
 	lbl_current_room.text = "Room [0, 0] 🟢 Start"
-	lbl_current_room.custom_minimum_size = Vector2(220, 0)
-	lbl_current_room.add_theme_font_size_override("font_size", 14)
+	lbl_current_room.custom_minimum_size = Vector2(180, 0)
+	lbl_current_room.add_theme_font_size_override("font_size", 13)
 	lbl_current_room.add_theme_color_override("font_color", Color("#FBBF24"))
-	hbox.add_child(lbl_current_room)
+	row1.add_child(lbl_current_room)
 	
-	hbox.add_child(VSeparator.new())
+	row1.add_child(VSeparator.new())
 	
 	lbl_hud_stats = Label.new()
 	lbl_hud_stats.text = "Threat: 80 / 80 | Solvable: Yes | Path: 6 Rooms"
 	lbl_hud_stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl_hud_stats.add_theme_font_size_override("font_size", 12)
 	lbl_hud_stats.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
-	hbox.add_child(lbl_hud_stats)
+	row1.add_child(lbl_hud_stats)
 	
-	# Tombol Restart: Mengembalikan fresh ke awal scene (tanpa in-place regenerate rawan crash)
 	btn_restart = Button.new()
 	btn_restart.text = "🔄 Restart Run"
-	btn_restart.custom_minimum_size = Vector2(120, 34)
+	btn_restart.custom_minimum_size = Vector2(110, 30)
 	btn_restart.add_theme_color_override("font_color", Color("#F87171"))
 	btn_restart.pressed.connect(func():
+		var wm = _get_wm()
+		if wm:
+			wm.clear_session()
 		get_tree().reload_current_scene()
 	)
-	hbox.add_child(btn_restart)
+	row1.add_child(btn_restart)
 	
 	btn_overworld = Button.new()
 	btn_overworld.text = "🏠 Overworld"
-	btn_overworld.custom_minimum_size = Vector2(100, 34)
+	btn_overworld.custom_minimum_size = Vector2(95, 30)
 	btn_overworld.pressed.connect(_return_to_overworld)
-	hbox.add_child(btn_overworld)
+	row1.add_child(btn_overworld)
 	
-	# D-pad kontrol arah
-	_build_dpad_ui()
+	# Baris 2: Kondisi Player Saat Ini (Current HP Bar & Active Item Buffs)
+	var row2 := HBoxContainer.new()
+	row2.add_theme_constant_override("separation", 12)
+	main_vbox.add_child(row2)
+	
+	var hp_title := Label.new()
+	hp_title.text = "💖 Player HP:"
+	hp_title.add_theme_font_size_override("font_size", 12)
+	hp_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.6))
+	row2.add_child(hp_title)
+	
+	var init_max_hp: int = 500
+	if has_node("/root/WildernessManager"):
+		var wm_init = get_node("/root/WildernessManager")
+		init_max_hp = wm_init.get("player_max_hp")
+	hp_bar = ProgressBar.new()
+	hp_bar.custom_minimum_size = Vector2(160, 18)
+	hp_bar.min_value = 0
+	hp_bar.max_value = init_max_hp
+	hp_bar.value = init_max_hp
+	hp_bar.show_percentage = false
+	var hp_sb := StyleBoxFlat.new()
+	hp_sb.bg_color = Color(0.18, 0.8, 0.44, 1.0)
+	hp_sb.set_corner_radius_all(4)
+	hp_bar.add_theme_stylebox_override("fill", hp_sb)
+	var bg_sb := StyleBoxFlat.new()
+	bg_sb.bg_color = Color(0.15, 0.18, 0.25, 0.9)
+	bg_sb.set_corner_radius_all(4)
+	hp_bar.add_theme_stylebox_override("background", bg_sb)
+	row2.add_child(hp_bar)
+	
+	lbl_player_hp = Label.new()
+	lbl_player_hp.text = "%d / %d" % [init_max_hp, init_max_hp]
+	lbl_player_hp.custom_minimum_size = Vector2(75, 0)
+	lbl_player_hp.add_theme_font_size_override("font_size", 12)
+	lbl_player_hp.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
+	row2.add_child(lbl_player_hp)
+	
+	row2.add_child(VSeparator.new())
+	
+	var buff_title := Label.new()
+	buff_title.text = "Efek Item Aktif:"
+	buff_title.add_theme_font_size_override("font_size", 12)
+	buff_title.add_theme_color_override("font_color", Color(0.85, 0.9, 0.98))
+	row2.add_child(buff_title)
+	
+	buffs_box = HBoxContainer.new()
+	buffs_box.add_theme_constant_override("separation", 6)
+	row2.add_child(buffs_box)
+	
 
-func _build_dpad_ui() -> void:
-	dpad_container = Control.new()
-	dpad_container.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	dpad_container.position = Vector2(-170, -170)
-	ui_layer.add_child(dpad_container)
-	
-	var dpad_box := Control.new()
-	dpad_box.custom_minimum_size = Vector2(150, 150)
-	dpad_container.add_child(dpad_box)
-	
-	btn_move_north = _create_dpad_btn("▲", Vector2i.UP)
-	btn_move_north.position = Vector2(50, 0)
-	dpad_box.add_child(btn_move_north)
-	
-	btn_move_west = _create_dpad_btn("◀", Vector2i.LEFT)
-	btn_move_west.position = Vector2(0, 50)
-	dpad_box.add_child(btn_move_west)
-	
-	btn_move_east = _create_dpad_btn("▶", Vector2i.RIGHT)
-	btn_move_east.position = Vector2(100, 50)
-	dpad_box.add_child(btn_move_east)
-	
-	btn_move_south = _create_dpad_btn("▼", Vector2i.DOWN)
-	btn_move_south.position = Vector2(50, 100)
-	dpad_box.add_child(btn_move_south)
-
-func _create_dpad_btn(arrow: String, dir: Vector2i) -> Button:
-	var b := Button.new()
-	b.text = arrow
-	b.custom_minimum_size = Vector2(46, 46)
-	b.pressed.connect(func(): move_player_chunk(dir))
-	return b
-
-func _unhandled_input(event: InputEvent) -> void:
-	if ingame_hud_panel == null or not ingame_hud_panel.visible:
+func _update_player_status_hud() -> void:
+	if not has_node("/root/WildernessManager"):
 		return
-	if is_moving_chunk:
-		return
-	if event.is_action_pressed("ui_up") or event.is_action_pressed("up"):
-		move_player_chunk(Vector2i.UP)
-	elif event.is_action_pressed("ui_down") or event.is_action_pressed("down"):
-		move_player_chunk(Vector2i.DOWN)
-	elif event.is_action_pressed("ui_left") or event.is_action_pressed("left"):
-		move_player_chunk(Vector2i.LEFT)
-	elif event.is_action_pressed("ui_right") or event.is_action_pressed("right"):
-		move_player_chunk(Vector2i.RIGHT)
+	var wm = get_node("/root/WildernessManager")
+	var hp: int = wm.get("player_hp")
+	var max_hp: int = wm.get("player_max_hp")
+	
+	if hp_bar:
+		hp_bar.max_value = max_hp
+		hp_bar.value = hp
+	if lbl_player_hp:
+		lbl_player_hp.text = "%d / %d" % [hp, max_hp]
+	
+	if buffs_box:
+		for c in buffs_box.get_children():
+			c.queue_free()
+		
+		var b_dict = wm.get("active_buffs")
+		var any_buff: bool = false
+		
+		if b_dict.get("pothp", 0) > 0:
+			_create_hud_buff_pill("🧪 HP Pot (+25 HP Rest)", b_dict["pothp"], Color(0.95, 0.4, 0.5))
+			any_buff = true
+		if b_dict.get("potstamina", 0) > 0:
+			_create_hud_buff_pill("⚡ Stamina Pot (-25% Cost)", b_dict["potstamina"], Color(0.3, 0.85, 1.0))
+			any_buff = true
+		if b_dict.get("sword", 0) > 0:
+			_create_hud_buff_pill("⚔️ Sword (+10% ATK)", b_dict["sword"], Color(1.0, 0.85, 0.25))
+			any_buff = true
+		if b_dict.get("axe", 0) > 0:
+			_create_hud_buff_pill("🪓 Axe (+10% Heavy)", b_dict["axe"], Color(1.0, 0.5, 0.2))
+			any_buff = true
+		
+		if not any_buff:
+			var empty_lbl := Label.new()
+			empty_lbl.text = "(Tidak ada efek aktif)"
+			empty_lbl.add_theme_font_size_override("font_size", 11)
+			empty_lbl.add_theme_color_override("font_color", Color(0.55, 0.6, 0.68))
+			buffs_box.add_child(empty_lbl)
+
+func _create_hud_buff_pill(title: String, duration: int, col: Color) -> void:
+	var p := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.1, 0.16, 0.9)
+	sb.border_color = col
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(2)
+	sb.content_margin_left = 6
+	sb.content_margin_right = 6
+	p.add_theme_stylebox_override("panel", sb)
+	
+	var l := Label.new()
+	l.text = "%s [%d Battle]" % [title, duration]
+	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_color_override("font_color", col)
+	p.add_child(l)
+	buffs_box.add_child(p)
 
 # =========================================================================
 # EKSEKUSI GENERASI MAP & LOGIKA STEP-BY-STEP
@@ -631,9 +736,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func get_target_difficulty() -> float:
 	var idx = opt_difficulty.selected if opt_difficulty else 1
 	match idx:
-		0: return 40.0
-		1: return 80.0
-		2: return 140.0
+		0: return 80.0
+		1: return 160.0
+		2: return 250.0
 		_: return 80.0
 
 func _on_start_exploration_fast() -> void:
@@ -648,8 +753,13 @@ func _on_start_exploration_fast() -> void:
 	current_map_state = res.final_state
 	current_chunk = current_map_state.start_chunk
 	
+	var wm = _get_wm()
+	if wm:
+		wm.start_exploration(current_map_state, res.csp_res.csp_result, res.ls_res)
+	
 	_render_map(current_map_state, res.csp_res.csp_result, res.ls_res)
 	_show_screen_state("PLAYING")
+	_update_player_status_hud()
 
 func _on_run_step_by_step_visualizer() -> void:
 	var var_h = opt_var_heuristic.selected if opt_var_heuristic else 2
@@ -672,8 +782,12 @@ func _on_enter_game_from_vis() -> void:
 	if last_generated_data.has("final_state"):
 		current_map_state = last_generated_data.final_state
 		current_chunk = current_map_state.start_chunk
+		var wm = _get_wm()
+		if wm:
+			wm.start_exploration(current_map_state, last_generated_data.csp_res.csp_result, last_generated_data.ls_res)
 		_render_map(current_map_state, last_generated_data.csp_res.csp_result, last_generated_data.ls_res)
 	_show_screen_state("PLAYING")
+	_update_player_status_hud()
 
 # --- Visualizer Timeline Playback ---
 func _go_to_step(idx: int) -> void:
@@ -1026,16 +1140,17 @@ func _render_map(state, csp_stats: Dictionary, ls_stats: Dictionary) -> void:
 	if hallway_length > 0:
 		_render_hallways(state)
 
-	# 3. Spawn Player di Start Room (Coastline)
-	var start_pixel = get_chunk_center_pixel(state.start_chunk)
+	# 3. Spawn Player (Start Room atau Posisi Sesi Tersimpan)
+	var wm_sess = _get_wm()
+	var player_pixel = get_chunk_center_pixel(current_chunk) if (wm_sess and wm_sess.has_active_session()) else get_chunk_center_pixel(state.start_chunk)
 	if player_node:
 		player_node.visible = true
-		player_node.global_position = start_pixel
+		player_node.global_position = player_pixel
 		if player_node.has_method("set_active"):
 			player_node.set_active(true)
 			
 	if camera:
-		camera.global_position = start_pixel
+		camera.global_position = player_pixel
 		
 	# 4. Spawn Portal di Portal Chunk
 	if portal_node:
@@ -1048,14 +1163,24 @@ func _render_map(state, csp_stats: Dictionary, ls_stats: Dictionary) -> void:
 		var px_center = get_chunk_center_pixel(c_pos)
 		
 		if ent.type == "enemy":
+			var wm_chk = _get_wm()
+			if wm_chk and (c_pos in wm_chk.defeated_chunks):
+				continue
 			var e_node = template_instance.instantiate_enemy(ent.node_name) if template_instance else null
 			if e_node:
 				e_node.global_position = px_center
+				e_node.set_meta("chunk_pos", c_pos)
+				e_node.set_meta("entity_data", ent)
 				enemies_container.add_child(e_node)
 		elif ent.type == "item":
+			var wm_chk_i = _get_wm()
+			if wm_chk_i and (c_pos in wm_chk_i.collected_chunks):
+				continue
 			var i_node = template_instance.instantiate_item(ent.node_name) if template_instance else null
 			if i_node:
 				i_node.global_position = px_center
+				i_node.set_meta("chunk_pos", c_pos)
+				i_node.set_meta("entity_data", ent)
 				items_container.add_child(i_node)
 				
 	_draw_chunk_path(state.chunk_path)
@@ -1077,52 +1202,81 @@ func _draw_chunk_path(route: Array) -> void:
 		path_line.add_point(get_chunk_center_pixel(c_pos))
 
 # =========================================================================
-# NAVIGASI PLAYER ANTAR CHUNK
+# MONITOR POSISI PLAYER UNTUK CLICK-TO-MOVE (DETEKSI CHUNK REAL-TIME)
 # =========================================================================
-func move_player_chunk(dir: Vector2i) -> void:
-	if is_moving_chunk or current_map_state == null:
-		return
-		
-	var target = current_chunk + dir
-	if target.x < 0 or target.x >= current_map_state.grid_w or target.y < 0 or target.y >= current_map_state.grid_h:
-		return
-		
-	var c_tpl_id = current_map_state.chunk_templates.get(current_chunk, "SOLID")
-	var t_tpl_id = current_map_state.chunk_templates.get(target, "SOLID")
-	var tpl_mgr = template_instance
-	var c_doors = tpl_mgr.get_template_by_id(c_tpl_id).doors if tpl_mgr else [false, false, false, false]
-	var t_doors = tpl_mgr.get_template_by_id(t_tpl_id).doors if tpl_mgr else [false, false, false, false]
-	
-	var can_exit = false
-	var can_enter = false
-	if dir == Vector2i.UP:
-		can_exit = c_doors[0]; can_enter = t_doors[1]
-	elif dir == Vector2i.DOWN:
-		can_exit = c_doors[1]; can_enter = t_doors[0]
-	elif dir == Vector2i.RIGHT:
-		can_exit = c_doors[2]; can_enter = t_doors[3]
-	elif dir == Vector2i.LEFT:
-		can_exit = c_doors[3]; can_enter = t_doors[2]
-		
-	if not (can_exit and can_enter):
-		return
-		
-	current_chunk = target
-	_animate_player_to_chunk(current_chunk)
 
-func _animate_player_to_chunk(c_pos: Vector2i) -> void:
-	is_moving_chunk = true
-	var target_px = get_chunk_center_pixel(c_pos)
-	if player_node:
-		var tw = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(player_node, "global_position", target_px, 0.22)
-		tw.tween_callback(func():
-			is_moving_chunk = false
+func _physics_process(_delta: float) -> void:
+	if ingame_hud_panel == null or not ingame_hud_panel.visible:
+		return
+	if player_node == null or not is_instance_valid(player_node):
+		return
+	if current_map_state == null or is_event_busy:
+		return
+
+	_monitor_player_exploration_position()
+
+func get_chunk_from_pixel(pixel_pos: Vector2) -> Vector2i:
+	var p = template_instance.chunk_size_p if template_instance else 7
+	var q = template_instance.chunk_size_q if template_instance else 7
+	var stride_x_px = float(p + hallway_length) * 64.0
+	var stride_y_px = float(q + hallway_length) * 64.0
+	if stride_x_px <= 0.0 or stride_y_px <= 0.0:
+		return Vector2i.ZERO
+	var cx = int(floor(pixel_pos.x / stride_x_px))
+	var cy = int(floor(pixel_pos.y / stride_y_px))
+	return Vector2i(cx, cy)
+
+func _monitor_player_exploration_position() -> void:
+	var p_pos: Vector2 = player_node.global_position
+	var p_chunk: Vector2i = get_chunk_from_pixel(p_pos)
+
+	# 1. Update room HUD saat player melintasi batas chunk
+	if p_chunk != current_chunk:
+		if p_chunk.x >= 0 and p_chunk.x < current_map_state.grid_w and p_chunk.y >= 0 and p_chunk.y < current_map_state.grid_h:
+			current_chunk = p_chunk
 			_update_room_hud()
-		)
-	else:
-		is_moving_chunk = false
-		_update_room_hud()
+
+	# 2. Cek apakah sampai ke portal chunk (Eksplorasi Selesai!)
+	var portal_px = get_chunk_center_pixel(current_map_state.portal_chunk)
+	if p_chunk == current_map_state.portal_chunk or p_pos.distance_to(portal_px) < 110.0:
+		is_event_busy = true
+		if player_node.has_method("set_active"):
+			player_node.set_active(false)
+		if "current_path" in player_node:
+			player_node.current_path.clear()
+		player_node.velocity = Vector2.ZERO
+		_show_exploration_recap_modal()
+		return
+
+	# 3. Cek Item di seluruh chunk yang belum diambil
+	for c_pos in current_map_state.chunk_entities.keys():
+		var ent = current_map_state.chunk_entities[c_pos]
+		if ent.type == "item":
+			var wm_chk_i = _get_wm()
+			if wm_chk_i and (c_pos in wm_chk_i.collected_chunks):
+				continue
+			var item_px = get_chunk_center_pixel(c_pos)
+			if p_chunk == c_pos or p_pos.distance_to(item_px) < 135.0:
+				_collect_item_at_chunk(c_pos, ent)
+				break
+
+	# 4. Cek Enemy di seluruh chunk yang belum dikalahkan
+	for c_pos in current_map_state.chunk_entities.keys():
+		var ent = current_map_state.chunk_entities[c_pos]
+		if ent.type == "enemy":
+			var wm_chk = _get_wm()
+			if wm_chk and (c_pos in wm_chk.defeated_chunks):
+				continue
+			var enemy_px = get_chunk_center_pixel(c_pos)
+			if p_chunk == c_pos or p_pos.distance_to(enemy_px) < 145.0:
+				is_event_busy = true
+				if player_node.has_method("set_active"):
+					player_node.set_active(false)
+				if "current_path" in player_node:
+					player_node.current_path.clear()
+				player_node.velocity = Vector2.ZERO
+				_trigger_enemy_encounter(c_pos, ent)
+				return
 
 func _update_room_hud() -> void:
 	if lbl_current_room == null or current_map_state == null:
@@ -1215,3 +1369,211 @@ func _render_hallways(state) -> void:
 						if decoration_layer and v_slice.has("decoration"):
 							for entry in v_slice["decoration"]:
 								decoration_layer.set_cell(row_offset + Vector2i(entry.x, 0), entry.source_id, entry.atlas_coords, entry.alt)
+
+# =========================================================================
+# CHUNK INTERACTION & BATTLE TRIGGER (WILDERNESS INTEGRATION)
+# =========================================================================
+
+
+func _collect_item_at_chunk(c_pos: Vector2i, ent: Dictionary) -> void:
+	var wm = _get_wm()
+	if wm:
+		if c_pos in wm.collected_chunks:
+			return
+		wm.collected_chunks.append(c_pos)
+
+	var item_node: Node2D = null
+	if items_container:
+		for child in items_container.get_children():
+			if child.has_meta("chunk_pos") and child.get_meta("chunk_pos") == c_pos:
+				item_node = child
+				break
+		if item_node == null:
+			var target_px = get_chunk_center_pixel(c_pos)
+			for child in items_container.get_children():
+				if child is Node2D and child.global_position.distance_to(target_px) < 60.0:
+					item_node = child
+					break
+
+	var pickup_res := {}
+	if has_node("/root/WildernessManager"):
+		pickup_res = wm.apply_item_pickup(ent.node_name)
+		_update_player_status_hud()
+
+	if item_node and is_instance_valid(item_node) and player_node:
+		var tw = create_tween().set_parallel(true)
+		tw.tween_property(item_node, "global_position", player_node.global_position, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		tw.tween_property(item_node, "scale", Vector2.ZERO, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		tw.tween_property(item_node, "modulate:a", 0.0, 0.4)
+		tw.chain().tween_callback(func():
+			if is_instance_valid(item_node):
+				item_node.queue_free()
+		)
+	elif item_node and is_instance_valid(item_node):
+		item_node.queue_free()
+
+	if not pickup_res.is_empty() and player_node:
+		_spawn_floating_text(player_node.global_position, pickup_res.get("text", "+Item"), pickup_res.get("color", Color.WHITE))
+
+func _trigger_enemy_encounter(c_pos: Vector2i, ent: Dictionary) -> void:
+	is_event_busy = true
+	if player_node and player_node.has_method("set_active"):
+		player_node.set_active(false)
+	if player_node and "current_path" in player_node:
+		player_node.current_path.clear()
+	if player_node:
+		player_node.velocity = Vector2.ZERO
+
+	var enemy_node: Node2D = null
+	if enemies_container:
+		for child in enemies_container.get_children():
+			if child.has_meta("chunk_pos") and child.get_meta("chunk_pos") == c_pos:
+				enemy_node = child
+				break
+		if enemy_node == null:
+			var target_px = get_chunk_center_pixel(c_pos)
+			for child in enemies_container.get_children():
+				if child is Node2D and child.global_position.distance_to(target_px) < 60.0:
+					enemy_node = child
+					break
+
+	if enemy_node and is_instance_valid(enemy_node) and player_node:
+		if enemy_node.has_method("play_animation"):
+			enemy_node.play_animation("run")
+
+		var sp = enemy_node.get_node_or_null("Sprite2D") as Sprite2D
+		if sp:
+			sp.flip_h = (player_node.global_position.x < enemy_node.global_position.x)
+
+		var tw = create_tween()
+		tw.tween_property(enemy_node, "global_position", player_node.global_position, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func():
+			_launch_battle_scene(c_pos, ent.node_name)
+		)
+	else:
+		_launch_battle_scene(c_pos, ent.node_name)
+
+func _launch_battle_scene(c_pos: Vector2i, enemy_node_name: String) -> void:
+	var wm = _get_wm()
+	if wm:
+		wm.current_chunk = c_pos
+		wm.saved_map_state = current_map_state
+		wm.start_wilderness_battle(enemy_node_name, c_pos)
+	else:
+		get_tree().change_scene_to_file("res://WildernessBattleStage.tscn")
+
+func _show_exploration_recap_modal() -> void:
+	if is_instance_valid(recap_modal_panel):
+		recap_modal_panel.queue_free()
+		recap_modal_panel = null
+
+	recap_modal_panel = PanelContainer.new()
+	recap_modal_panel.set_anchors_preset(Control.PRESET_CENTER)
+	recap_modal_panel.custom_minimum_size = Vector2(500, 360)
+	recap_modal_panel.offset_left = -250.0
+	recap_modal_panel.offset_top = -180.0
+	recap_modal_panel.offset_right = 250.0
+	recap_modal_panel.offset_bottom = 180.0
+	recap_modal_panel.z_index = 100
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.07, 0.10, 0.16, 0.98)
+	style.border_color = Color(0.3, 0.95, 0.65, 1.0)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.set_content_margin_all(20)
+	recap_modal_panel.add_theme_stylebox_override("panel", style)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	recap_modal_panel.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "🎉 EKSPLORASI SELESAI!"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.3, 0.95, 0.65))
+	vbox.add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "Pawn berhasil mencapai Portal Wilderness dan menyelesaikan seluruh eksplorasi!"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 13)
+	subtitle.add_theme_color_override("font_color", Color(0.8, 0.88, 0.96))
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(subtitle)
+
+	vbox.add_child(HSeparator.new())
+
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(grid)
+
+	var wm = get_node_or_null("/root/WildernessManager")
+	var hp_val = wm.get("player_hp") if wm else 500
+	var max_hp_val = wm.get("player_max_hp") if wm else 500
+	var def_val = wm.get("enemies_defeated_count") if wm else 0
+	var itm_val = wm.get("items_collected_count") if wm else 0
+	var thr_val = current_map_state.difficulty_score if current_map_state else 0.0
+
+	_add_recap_stat_row(grid, "💖 Sisa HP Player:", "%d / %d" % [hp_val, max_hp_val], Color(0.35, 1.0, 0.55))
+	_add_recap_stat_row(grid, "⚔️ Musuh Dikalahkan:", "%d Musuh" % def_val, Color(1.0, 0.45, 0.45))
+	_add_recap_stat_row(grid, "💎 Item Diambil:", "%d Item" % itm_val, Color(0.4, 0.85, 1.0))
+	_add_recap_stat_row(grid, "🔥 Total Threat Cleared:", "%.1f" % thr_val, Color(1.0, 0.85, 0.3))
+
+	vbox.add_child(HSeparator.new())
+
+	var btn_box := HBoxContainer.new()
+	btn_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(btn_box)
+
+	var btn_overworld := Button.new()
+	btn_overworld.text = "🏠 Kembali ke Overworld"
+	btn_overworld.custom_minimum_size = Vector2(230, 44)
+	var ob := StyleBoxFlat.new()
+	ob.bg_color = Color(0.14, 0.45, 0.65, 1.0)
+	ob.border_color = Color(0.35, 0.85, 1.0, 1.0)
+	ob.set_border_width_all(1)
+	ob.set_corner_radius_all(8)
+	btn_overworld.add_theme_stylebox_override("normal", ob)
+	btn_overworld.pressed.connect(func():
+		if wm:
+			wm.clear_session()
+		get_tree().change_scene_to_file("res://Overworld.tscn")
+	)
+	btn_box.add_child(btn_overworld)
+
+	ui_layer.add_child(recap_modal_panel)
+
+func _add_recap_stat_row(grid: GridContainer, label_txt: String, val_txt: String, val_col: Color) -> void:
+	var l := Label.new()
+	l.text = label_txt
+	l.add_theme_font_size_override("font_size", 13)
+	l.add_theme_color_override("font_color", Color(0.7, 0.78, 0.88))
+	grid.add_child(l)
+
+	var v := Label.new()
+	v.text = val_txt
+	v.add_theme_font_size_override("font_size", 13)
+	v.add_theme_color_override("font_color", val_col)
+	grid.add_child(v)
+
+func _spawn_floating_text(world_pos: Vector2, text: String, color: Color) -> void:
+	var label := Label.new()
+	label.text = text
+	label.z_index = 50
+	label.position = world_pos + Vector2(-90, -50)
+	label.custom_minimum_size = Vector2(180, 24)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", Color(0.02, 0.04, 0.08, 0.95))
+	label.add_theme_constant_override("outline_size", 3)
+	add_child(label)
+
+	var tw = create_tween().set_parallel(true)
+	tw.tween_property(label, "position:y", label.position.y - 35.0, 0.7).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_property(label, "modulate:a", 0.0, 0.3).set_delay(0.2)
+	tw.chain().tween_callback(label.queue_free)

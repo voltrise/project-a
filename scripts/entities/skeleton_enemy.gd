@@ -8,6 +8,7 @@ extends CharacterBody2D
 @export var enemy_tier: String = "Common"
 @export var max_hp: int = 85
 @export var atk_val: int = 16
+@export var enable_hover_card: bool = true
 
 var sprite: Sprite2D = null
 var anim_player: AnimationPlayer = null
@@ -41,6 +42,18 @@ func setup_stats(name_str: String, pwr: float, tier_str: String = "Common", hp: 
 	add_child(detail_card)
 	detail_card.visible = false
 
+func disable_hover() -> void:
+	enable_hover_card = false
+	is_hovered = false
+	if detail_card != null and is_instance_valid(detail_card):
+		detail_card.visible = false
+		detail_card.queue_free()
+		detail_card = null
+	for child in get_children():
+		if child is PanelContainer:
+			child.visible = false
+			child.queue_free()
+
 func _setup_nodes() -> void:
 	sprite = get_node_or_null("Sprite2D")
 	if sprite == null:
@@ -56,7 +69,11 @@ func _setup_nodes() -> void:
 	if anim_player and anim_player.has_animation("idle"):
 		anim_player.play("idle")
 		
-	if detail_card == null:
+	if not enable_hover_card:
+		if detail_card != null and is_instance_valid(detail_card):
+			detail_card.queue_free()
+			detail_card = null
+	elif detail_card == null:
 		detail_card = _build_floating_card()
 		add_child(detail_card)
 		detail_card.visible = false
@@ -116,12 +133,19 @@ func _build_floating_card() -> PanelContainer:
 	return panel
 
 func _process(delta: float) -> void:
+	if not enable_hover_card:
+		if is_hovered:
+			is_hovered = false
+		if detail_card != null and is_instance_valid(detail_card):
+			detail_card.visible = false
+		return
+
 	# Continuous mouse hover check
 	var m_pos = to_local(get_global_mouse_position())
 	var in_bounds = abs(m_pos.x) < 30.0 and m_pos.y > -50.0 and m_pos.y < 20.0
 	if in_bounds != is_hovered:
 		is_hovered = in_bounds
-		if detail_card:
+		if detail_card and is_instance_valid(detail_card):
 			detail_card.visible = is_hovered
 
 func _draw() -> void:

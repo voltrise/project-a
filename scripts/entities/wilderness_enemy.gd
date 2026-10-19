@@ -11,6 +11,7 @@ extends CharacterBody2D
 @export var tier: String = "Common"
 @export var max_hp: int = 80
 @export var atk_val: int = 15
+@export var enable_hover_card: bool = true
 
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
 @onready var anim_player: AnimationPlayer = get_node_or_null("AnimationPlayer")
@@ -46,8 +47,25 @@ func play_animation(anim_name: String) -> void:
 			anim_player.play(target_name)
 			return
 
+func disable_hover() -> void:
+	enable_hover_card = false
+	is_hovered = false
+	if detail_card != null and is_instance_valid(detail_card):
+		detail_card.visible = false
+		detail_card.queue_free()
+		detail_card = null
+	for child in get_children():
+		if child is PanelContainer:
+			child.visible = false
+			child.queue_free()
+
 func _setup_card() -> void:
-	if detail_card != null:
+	if not enable_hover_card:
+		if detail_card != null and is_instance_valid(detail_card):
+			detail_card.queue_free()
+			detail_card = null
+		return
+	if detail_card != null and is_instance_valid(detail_card):
 		detail_card.queue_free()
 	detail_card = _build_floating_card()
 	add_child(detail_card)
@@ -113,11 +131,18 @@ func _process(delta: float) -> void:
 				current_frame = (current_frame + 1) % sprite.hframes
 				sprite.frame = current_frame
 				
+	if not enable_hover_card:
+		if is_hovered:
+			is_hovered = false
+		if detail_card != null and is_instance_valid(detail_card):
+			detail_card.visible = false
+		return
+
 	var m_pos = to_local(get_global_mouse_position())
 	var in_bounds = abs(m_pos.x) < 32.0 and m_pos.y > -55.0 and m_pos.y < 25.0
 	if in_bounds != is_hovered:
 		is_hovered = in_bounds
-		if detail_card:
+		if detail_card and is_instance_valid(detail_card):
 			detail_card.visible = is_hovered
 
 func _draw() -> void:

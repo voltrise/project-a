@@ -10,7 +10,6 @@
 [ext_resource type="Texture2D" uid="uid://chju2u50celj1" path="res://assets/Tiny Swords (Free Pack)/Units/Blue Units/Pawn/Pawn_Idle.png" id="9_pawn_tex"]
 [ext_resource type="Script" uid="uid://cajo0lwfmyeni" path="res://scripts/world/camera_2d.gd" id="11_cam_script"]
 [ext_resource type="Texture2D" uid="uid://ck4nman7te47m" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/Bridge_All.png" id="11_tbhwp"]
-[ext_resource type="Texture2D" uid="uid://dihw1vqwir2o8" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/TileSet-export.png" id="12_8nokx"]
 [ext_resource type="Texture2D" uid="uid://bbb6vhjxqn3tp" path="res://characters/Frieren.png" id="12_ccyyg"]
 [ext_resource type="Texture2D" uid="uid://b3165yi2sf4ty" path="res://characters/Fern.png" id="13_kcxk3"]
 [ext_resource type="Texture2D" uid="uid://bc5xhbal0s0jq" path="res://assets/Tiny Swords (Free Pack)/Terrain/Tileset/TileSet.png" id="13_qi1r2"]
@@ -63,54 +62,6 @@ texture_region_size = Vector2i(192, 192)
 tile_size = Vector2i(64, 64)
 sources/2 = SubResource("TileSetAtlasSource_8nokx")
 pattern_0 = SubResource("TileMapPattern_2f2b3")
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_76n5q"]
-tile_data = PackedInt32Array(0, 2818054, 6)
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_x2hau"]
-texture = ExtResource("11_tbhwp")
-texture_region_size = Vector2i(64, 64)
-0:0/0 = 0
-0:0/0/terrain_set = 0
-0:0/0/terrain = 0
-0:0/0/terrains_peering_bit/right_side = 0
-1:0/0 = 0
-1:0/0/terrain_set = 0
-1:0/0/terrain = 0
-1:0/0/terrains_peering_bit/right_side = 0
-1:0/0/terrains_peering_bit/left_side = 0
-2:0/0 = 0
-2:0/0/terrain_set = 0
-2:0/0/terrain = 0
-2:0/0/terrains_peering_bit/left_side = 0
-0:1/0 = 0
-0:1/0/terrain_set = 0
-0:1/0/terrain = 0
-0:1/0/terrains_peering_bit/bottom_side = 0
-0:2/0 = 0
-0:2/0/terrain_set = 0
-0:2/0/terrain = 0
-0:2/0/terrains_peering_bit/bottom_side = 0
-0:2/0/terrains_peering_bit/top_side = 0
-0:3/0 = 0
-0:3/0/terrain_set = 0
-0:3/0/terrain = 0
-0:3/0/terrains_peering_bit/top_side = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u4qoh"]
-texture = ExtResource("12_8nokx")
-texture_region_size = Vector2i(64, 64)
-43:6/0 = 0
-
-[sub_resource type="TileSet" id="TileSet_80e10"]
-tile_size = Vector2i(64, 64)
-physics_layer_0/collision_layer = 1
-terrain_set_0/mode = 0
-terrain_set_0/terrain_0/name = "Bridge"
-terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
-sources/6 = SubResource("TileSetAtlasSource_u4qoh")
-sources/0 = SubResource("TileSetAtlasSource_x2hau")
-pattern_0 = SubResource("TileMapPattern_76n5q")
 
 [sub_resource type="TileMapPattern" id="TileMapPattern_pybn6"]
 tile_data = PackedInt32Array(0, 1, 0)
@@ -372,14 +323,15 @@ pattern_0 = SubResource("TileMapPattern_ifhio")
 pattern_1 = SubResource("TileMapPattern_d4la6")
 
 [node name="Node2D" type="Node2D" unique_id=183755367]
+y_sort_enabled = true
 script = ExtResource("1_3ga8k")
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=1069009614]
+y_sort_enabled = true
 position = Vector2(160, 160)
 script = ExtResource("8_player_script")
 
 [node name="PlayerSprite" type="Sprite2D" parent="Player" unique_id=1490108250]
-z_index = 3
 texture_filter = 1
 position = Vector2(0, -12)
 texture = ExtResource("9_pawn_tex")
@@ -401,6 +353,7 @@ position = Vector2(354, 351)
 script = ExtResource("11_cam_script")
 
 [node name="Visuals" type="TileMapLayer" parent="." unique_id=177723037]
+y_sort_enabled = true
 
 [node name="Water" type="TileMapLayer" parent="Visuals" unique_id=2117577038]
 z_index = -2
@@ -411,12 +364,7 @@ tile_set = SubResource("TileSet_jeh1e")
 texture_filter = 1
 tile_set = ExtResource("3_ground_ts")
 
-[node name="Ground2" type="TileMapLayer" parent="Visuals" unique_id=975316077]
-texture_filter = 1
-tile_set = SubResource("TileSet_80e10")
-
 [node name="Decoration" type="TileMapLayer" parent="Visuals" unique_id=2129288366]
-z_index = 2
 y_sort_enabled = true
 texture_filter = 1
 tile_set = SubResource("TileSet_0ptwm")
