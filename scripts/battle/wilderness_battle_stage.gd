@@ -68,7 +68,7 @@ var banner_label: Label
 var game_over_modal: PanelContainer
 var buffs_container: HBoxContainer = null
 
-var player_fighter_name: String = "PAWN"
+var player_fighter_name: String = "PLAYER"
 var enemy_fighter_name: String = "SKELETON"
 var _player_orig_pos: Vector2 = Vector2.ZERO
 var _enemy_orig_pos: Vector2 = Vector2.ZERO
@@ -318,7 +318,7 @@ func _init_battle_system() -> void:
 			"heavy_damage": 25,
 		}
 
-	player_fighter_name = "PAWN"
+	player_fighter_name = "PLAYER"
 	enemy_fighter_name = enemy_preset.get("name", "ENEMY").to_upper()
 
 	state = StateScript.new(p_hp, enemy_preset, buffs, p_max_hp)
@@ -747,13 +747,13 @@ func _show_game_over_modal(is_player_win: bool) -> void:
 
 	var subtitle := Label.new()
 	if is_player_win:
-		subtitle.text = "Pawn berhasil mengalahkan %s!\nSisa HP tersimpan: %d / %d" % [
+		subtitle.text = "Player berhasil mengalahkan %s!\nSisa HP tersimpan: %d / %d" % [
 			enemy_fighter_name,
 			state.player["hp"],
 			state.player["max_hp"]
 		]
 	else:
-		subtitle.text = "Pawn telah gugur dalam petualangan di Wilderness..."
+		subtitle.text = "Player telah gugur dalam petualangan di Wilderness..."
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 14)
 	subtitle.add_theme_color_override("font_color", Color(0.85, 0.9, 0.96))

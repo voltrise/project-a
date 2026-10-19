@@ -957,7 +957,7 @@ func _build_debug_menu() -> void:
 	# 1.1 Checkbox Optimal Path
 	chk_debug_optimal_path = CheckBox.new()
 	chk_debug_optimal_path.text = "Show Optimal Path"
-	chk_debug_optimal_path.button_pressed = true
+	chk_debug_optimal_path.button_pressed = false
 	chk_debug_optimal_path.toggled.connect(func(on: bool):
 		if path_line:
 			path_line.visible = on
