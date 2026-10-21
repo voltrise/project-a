@@ -202,6 +202,7 @@ func _ensure_runtime_nodes() -> void:
 		path_line.width = 4.0
 		path_line.default_color = Color(0.2, 0.85, 0.4, 0.7)
 		path_line.z_index = 4
+		path_line.visible = false
 		add_child(path_line)
 	
 	if debug_grid_overlay == null:
@@ -961,6 +962,8 @@ func _build_debug_menu() -> void:
 	chk_debug_optimal_path.toggled.connect(func(on: bool):
 		if path_line:
 			path_line.visible = on
+			if on and path_line.get_point_count() == 0 and current_map_state:
+				_draw_chunk_path(current_map_state.chunk_path)
 	)
 	vbox.add_child(chk_debug_optimal_path)
 	
@@ -2032,12 +2035,12 @@ func _draw_chunk_path(route: Array) -> void:
 	if path_line == null:
 		return
 	path_line.clear_points()
-	if chk_debug_optimal_path and not chk_debug_optimal_path.button_pressed:
-		path_line.visible = false
-		return
-	path_line.visible = true
 	for c_pos in route:
 		path_line.add_point(get_chunk_center_pixel(c_pos))
+	if chk_debug_optimal_path:
+		path_line.visible = chk_debug_optimal_path.button_pressed
+	else:
+		path_line.visible = false
 
 # =========================================================================
 # MONITOR POSISI PLAYER UNTUK CLICK-TO-MOVE (DETEKSI CHUNK REAL-TIME)
