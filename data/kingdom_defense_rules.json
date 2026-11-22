@@ -1,0 +1,82 @@
+{
+  "description": "Knowledge Base Rules for Kingdom Defense: Guard Reports, Threat Evaluation, and Defense Task Assignment",
+  "metadata": {
+    "module": "Logic & Knowledge Representation",
+    "topic": "Propositional Logic & Resolution Refutation",
+    "decoupled": true
+  },
+  "predicates": [
+    "Threat_MainGate",
+    "Threat_Cave",
+    "Threat_Docks",
+    "Report_MainGate",
+    "Report_Cave",
+    "Report_Docks",
+    "Assign_Archer_MainGate",
+    "Assign_Warrior_Cave",
+    "Assign_Builder_Docks",
+    "Assign_Archer_Docks",
+    "Assign_Warrior_MainGate",
+    "Assign_Builder_Cave",
+    "KingdomSecure",
+    "EmergencyBell"
+  ],
+  "rules": [
+    {
+      "id": "R_Report_MainGate",
+      "formula": "Threat_MainGate -> Report_MainGate",
+      "cnf_clauses": [
+        ["-Threat_MainGate", "Report_MainGate"]
+      ]
+    },
+    {
+      "id": "R_Report_Cave",
+      "formula": "Threat_Cave -> Report_Cave",
+      "cnf_clauses": [
+        ["-Threat_Cave", "Report_Cave"]
+      ]
+    },
+    {
+      "id": "R_Report_Docks",
+      "formula": "Threat_Docks -> Report_Docks",
+      "cnf_clauses": [
+        ["-Threat_Docks", "Report_Docks"]
+      ]
+    },
+    {
+      "id": "R_Opt_MainGate_Archer",
+      "formula": "Report_MainGate -> Assign_Archer_MainGate",
+      "cnf_clauses": [
+        ["-Report_MainGate", "Assign_Archer_MainGate"]
+      ]
+    },
+    {
+      "id": "R_Opt_Cave_Warrior",
+      "formula": "Report_Cave -> Assign_Warrior_Cave",
+      "cnf_clauses": [
+        ["-Report_Cave", "Assign_Warrior_Cave"]
+      ]
+    },
+    {
+      "id": "R_Opt_Docks_Builder",
+      "formula": "Report_Docks -> Assign_Builder_Docks",
+      "cnf_clauses": [
+        ["-Report_Docks", "Assign_Builder_Docks"]
+      ]
+    },
+    {
+      "id": "R_AllClear",
+      "formula": "(-Threat_MainGate AND -Threat_Cave AND -Threat_Docks) -> KingdomSecure",
+      "cnf_clauses": [
+        ["Threat_MainGate", "Threat_Cave", "Threat_Docks", "KingdomSecure"]
+      ]
+    },
+    {
+      "id": "R_Total_Mobilization",
+      "formula": "(Threat_MainGate AND Threat_Cave AND Threat_Docks) -> TotalMobilization",
+      "cnf_clauses": [
+        ["-Threat_MainGate", "-Threat_Cave", "-Threat_Docks", "TotalMobilization"]
+      ]
+    }
+  ]
+}
